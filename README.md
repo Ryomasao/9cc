@@ -33,5 +33,19 @@ $ docker system prune
 ```
 
 
+### Dockerfile作成
+あとでつくろう。
+とりあえず、以下をインストール
+```
+$ apk --update add gcc make  binutils libc-dev
+```
+
+それぞれ何かがあんまわかってない。
+
+説明では、`libc-dev`ではなくって、`libc6-dev`
+Alpineで見つからなかったので。
+
+
+
 
 
