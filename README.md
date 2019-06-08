@@ -71,7 +71,36 @@ $ docker-compose run  --rm main ash
 #### 01-first-compile
 整数渡すことだけできるコンパイラを作成
 
-#### 
+#### 02-testと02-test-make
+テスト用シェルを作成する
+
+<b>思い出す</b>
+```sh
+# 変数を適当に宣言して、引数をセット
+varibable=$1
+# 変数を参照するときは`$`をつけてアクセスする
+echo $variable
+# これもいける
+echo "テンプレートリテラル$variable的な？"
+# 文字列は変数を展開しないんであれば""をつける必要もない？
+echo OK
+```
+
+
+なつかしの`make`
+
+`Makefile`を作成して、これを書くだけで
+```
+9cc: main.c
+```
+
+これと同じ意味になる
+```sh
+$ gcc -o 9cc main.c
+```
+
+
+
 
 
 
