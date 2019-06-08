@@ -1,2 +1,11 @@
+# ignore all
+*
+# Unignore all with extension
+!*.*
+# Unignore all dirs
+!*/
+
+# you can edit following line
 .vscode
 *.out
+*.s
