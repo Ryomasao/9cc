@@ -18,5 +18,5 @@ try() {
   fi
 }
 
-try 1 $1
+try $1 $2
 echo OK
