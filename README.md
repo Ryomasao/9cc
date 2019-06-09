@@ -128,6 +128,79 @@ $ gcc -o 9cc 9cc.c
 ```
 
 #### 03-basic-calc
+簡単な計算を行えるようになった！
+
+`strtol`がややこしい、というよりCのポインタまわりはややこしい
+
+```c
+  char *p = argv[1];
+
+  // pは文字列の先頭アドレスを格納している変数
+  // もう一回書く。アドレスを格納している変数だ
+  // &p はその変数のアドレス
+  // strtolは文字列のアドレスを受け取って、10進数の値を先頭から探す
+  // 10進数以外の値が見つかったら、その文字列のアドレスをpに格納して返す
+  // アドレスを書き換えたいから、pそのもののアドレスを渡すんだね
+  printf(" mov rax, %ld\n", strtol(p, &p, 10));
+
+  // pは何を指しているかdebug
+  //printf("remain %s\n", p);
+
+```
+
+#### 03-token
+
+
+<b>構造体をおもいだす</b>
+```c
+
+// 基本は構造体タグを定義して
+struct member {
+  char name[10];
+  int age;
+}
+
+int main() {
+  // 構造体タグ + struct 変数名で使える
+  member struct ayane;
+  ayane.age = 24;
+}
+
+// 面倒なのでこれでいい
+typedef struct {
+  char name[10];
+  int age;
+} member 
+
+int main() {
+  member ayane;
+  ayane.age = 24;
+}
+
+```
+
+### そういえば while(*p) って
+
+文字列走査の`while(*p)`ってpのどの状態をfalsyとして扱ってるんだろ。
+https://www.grapecity.com/developer/support/powernews/column/clang/028/page02.htm
+こちらに終端にNULL(\0)が置かれるって書いてあった。
+
+試しにのぞいてみる。
+
+16進数で参照してみると、こんな感じに
+```c
+char *p = argv[1];
+printf("char: %x\n", p[0]);
+printf("char: %x\n", p[1]);
+printf("char: %x\n", p[2]);
+```
+
+```sh
+$ ./9cc ab
+char: 61
+char: 62
+char: 0
+```
 
 
 
