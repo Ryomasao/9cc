@@ -18,5 +18,5 @@ try() {
   fi
 }
 
-try $1 $2
+try 41 " 12 + 34 - 5 "
 echo OK

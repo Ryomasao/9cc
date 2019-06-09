@@ -48,6 +48,10 @@ void error_at(char *loc, char*msg) {
   //printf(" address of user_input  %p \n", user_input);
 
   fprintf(stderr, "%s\n", user_input);
+  // pos分スベースを出力する
+  // そうするとこんなエラーメッセージになる素敵
+  // 123a1
+  //    ^ トークナイズできません
   fprintf(stderr, "%*s", pos, "");
   fprintf(stderr, "^ %s\n", msg);
   exit(1);
@@ -97,44 +101,48 @@ int main(int argc, char **argv) {
   user_input = argv[1];
   tokenize();
 
-
-  return 0;
-
-  char *p = argv[1];
-
+  // アセンブリの前半部分を出力
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
 
+  // 式の最初は数であることのチェック
+  if(tokens[0].ty != TK_NUM)
+    error_at(tokens[0].input, "式の最初が数ではありません" );
+  
+  printf(" mov rax, %d\n", tokens[0].val);
 
-  // pは文字列の先頭アドレスを格納している変数
-  // もう一回書く。アドレスを格納している変数だ
-  // &p はその変数のアドレス
-  // strtolは文字列のアドレスを受け取って、10進数の値を先頭から探す
-  // 10進数以外の値が見つかったら、その文字列のアドレスをpに格納して返す
-  // アドレスを書き換えたいから、pそのもののアドレスを渡すんだね
-  printf(" mov rax, %ld\n", strtol(p, &p, 10));
-
-  // pは何を指しているかdebug
-  //printf("remain %s\n", p);
-
-  while (*p) {
-    if(*p == '+') {
-      p++;
-      printf(" add rax, %ld\n", strtol(p, &p, 10));
+  // 1tokenごとに走査ではなく、 + or -　の後に数というセットでチェックしてる
+  // なんとなくtokenごとなのかとと思ったけど、アセンブラに出力するときはadd or sub + 数値だから
+  // このセットになる
+  // 後から見てわすれるかもしれないけど、tokenの数値は、1文字じゃなくって、次のtokenの区切りまではいってるから注意ね。
+  // ex)123+45　
+  // 123 token[0]
+  // +   token[1]
+  // 45  token[2]
+  int i = 1;
+  while(tokens[i].ty != TK_EOF) {
+    if(tokens[i].ty == '+') {
+      i++;
+      if(tokens[i].ty != TK_NUM)
+        error_at(tokens[i].input, "数ではありません");
+      printf(" add rax, %d\n", tokens[i].val);
+      i++;
       continue;
     }
 
-    if(*p == '-') {
-      p++;
-      printf(" sub rax, %ld\n", strtol(p, &p, 10));
+    if(tokens[i].ty == '-') {
+      i++;
+      if(tokens[i].ty != TK_NUM)
+        error_at(tokens[i].input, "数ではありません");
+      printf(" sub rax, %d\n", tokens[i].val);
+      i++;
       continue;
     }
 
-    fprintf(stderr, "予期しない文字です: '%c'\n", *p);
-    return -1;
+    error_at(tokens[i].input, "予期しないトークンです");
   }
 
-  printf(" ret \n");
+  printf(" ret\n");
   return 0;
 }
