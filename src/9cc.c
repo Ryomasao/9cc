@@ -10,6 +10,21 @@ enum {
   TK_EOF,       // 入力の終わりを表すトークン
 };
 
+enum {
+  ND_NUM = 256, // 整数のノードの型
+};
+
+// Node型の中にNodeがある
+// typef struct Node　としておくと、lhsとかでNode型がわからないことによるwarningが消えた
+typedef struct Node
+{
+  int ty;           // 演算子かND_NUM
+  struct Node *lhs; // 左辺
+  struct Node *rhs; // 右辺
+  int val;          // tyがND_NUMの場合のみ使う
+} Node;
+
+
 // トークンの型
 typedef struct {
   int ty;       // トークンの型
@@ -19,6 +34,9 @@ typedef struct {
 
 // 入力プログラム
 char *user_input;
+
+// 現在のtokenのindex
+int pos = 0;
 
 // トークナイズした結果のトークン列を格納する配列
 // とりあえず100個
@@ -57,10 +75,56 @@ void error_at(char *loc, char*msg) {
   exit(1);
 }
 
+Node *new_node(int ty, Node *lhs, Node *rhs) {
+  Node *node = malloc(sizeof(Node));
+  node->ty = ty;
+  node->lhs = lhs;
+  node->rhs = rhs;
+  return node;
+}
+
+Node *new_node_num(int val) {
+  Node *node = malloc(sizeof(Node));
+  node->ty = ND_NUM;
+  node->val = val;
+  return node;
+}
+
+int consume(int ty) {
+  if(tokens[pos].ty != ty)
+    return 0;
+
+  pos++;
+  return 1;
+}
+
+Node *expr();
+
+Node *term() {
+  if(tokens[pos].ty == TK_NUM) 
+    return new_node_num(tokens[pos++].val);
+
+  error_at(tokens[pos].input, "数値じゃないトークンです");
+}
+
+
+Node *expr() {
+  Node *node = term();
+  for(;;) {
+    if(consume('+'))
+      node = new_node('+', node, term());
+    else if(consume('-'))
+      node = new_node('-', node, term());
+    else
+      return node;
+  }
+}
+
 // user_inputが指している文字列をトークンに分割して、tokensに保存する
 void tokenize() {
   char *p = user_input;
   int i = 0;
+
   while(*p) {
     // 空白文字はskip
     if(isspace(*p)) {
@@ -68,7 +132,7 @@ void tokenize() {
       continue;
     }
 
-    if(*p == '+' || *p == '-') {
+    if(*p == '+' || *p == '-' ) {
       tokens[i].ty = *p;
       tokens[i].input = p;
       i++;
@@ -91,6 +155,59 @@ void tokenize() {
   tokens[i].input = p;
 }
 
+// 以下のノードを考えてみよう
+//       -
+//    +    4
+//  +   3 
+// 1 2
+//
+// 最初は、演算子なので、gen(node->lhs) gen(node->rhs)が走る
+// 1.スタックには、gen(node->rhs)で右辺の数値の4がpushされる
+// 2.左辺は、また演算子なので、gen(node->lhs) gen(node->rhs)が走る
+// 3.スタックには、右辺の数値3がpushされる
+// 4.左辺はまた演算子なので、gen(node-lhs) gen(node->rhs)が走る
+// 5.スタックには、左辺の数値1、右辺の数値2がpushされる
+// このときのスタックは以下の通り
+//  
+// 1
+// 2 
+// 3
+// 4
+//
+// pop rdi  ※1を取り出す
+// pop rdx  ※2を取り出す
+// 演算子の型を見て、+ なら、rdiとraxを足して、raxに格納する
+// 演算子の型を見て、- なら、略...
+// 結果のraxを再度スタックに格納
+// 4の再帰が、同様にpopして、結果をスタックに格納
+// 2の再帰が、略...
+
+void gen(Node *node) {
+  if(node->ty == ND_NUM) {
+    // 数値だったらスタックにpush
+    printf("  push %d\n", node->val);
+    return;
+  }
+
+  gen(node->lhs);
+  gen(node->rhs);
+
+  printf("  pop rdi\n");
+  printf("  pop rax\n");
+
+  switch (node->ty) {
+    case '+':
+      printf("  add rax, rdi\n");
+      break;
+    case '-':
+      printf("  sub rax, rdi\n");
+      break;
+  }
+
+  printf("  push rax\n");
+}
+
+
 int main(int argc, char **argv) {
   if(argc != 2) {
     fprintf(stderr, "引数の数が正しくありません\n");
@@ -100,49 +217,19 @@ int main(int argc, char **argv) {
   // トークナイズする
   user_input = argv[1];
   tokenize();
+  Node *node = expr();
 
   // アセンブリの前半部分を出力
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
 
-  // 式の最初は数であることのチェック
-  if(tokens[0].ty != TK_NUM)
-    error_at(tokens[0].input, "式の最初が数ではありません" );
-  
-  printf(" mov rax, %d\n", tokens[0].val);
+  gen(node);
 
-  // 1tokenごとに走査ではなく、 + or -　の後に数というセットでチェックしてる
-  // なんとなくtokenごとなのかとと思ったけど、アセンブラに出力するときはadd or sub + 数値だから
-  // このセットになる
-  // 後から見てわすれるかもしれないけど、tokenの数値は、1文字じゃなくって、次のtokenの区切りまではいってるから注意ね。
-  // ex)123+45　
-  // 123 token[0]
-  // +   token[1]
-  // 45  token[2]
-  int i = 1;
-  while(tokens[i].ty != TK_EOF) {
-    if(tokens[i].ty == '+') {
-      i++;
-      if(tokens[i].ty != TK_NUM)
-        error_at(tokens[i].input, "数ではありません");
-      printf(" add rax, %d\n", tokens[i].val);
-      i++;
-      continue;
-    }
+  // スタックトップに式全体の値が残っているはずなので
+  // それをRAXにロードして関数からの返り値とする
+  printf("  pop rax\n");
+  printf("  ret\n");
 
-    if(tokens[i].ty == '-') {
-      i++;
-      if(tokens[i].ty != TK_NUM)
-        error_at(tokens[i].input, "数ではありません");
-      printf(" sub rax, %d\n", tokens[i].val);
-      i++;
-      continue;
-    }
-
-    error_at(tokens[i].input, "予期しないトークンです");
-  }
-
-  printf(" ret\n");
   return 0;
 }

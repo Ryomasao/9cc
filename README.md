@@ -203,6 +203,74 @@ char: 0
 ```
 
 
+### tokenの内容  
+こんな感じになってる
+```c
+  // ex)123+45　
+  // 123 token[0]
+  // +   token[1]
+  // 45  token[2]
+```
+
+### トークナイザ
+
+シンプルな構文木で考える。
+
+```
+expr = num ("+" num | "-" num)*
+```
+
+これをコードで構文木にしようとするとこんな感じにかける
+```c
+Node *expr() {
+  // numから始まるので、まずはnumをとってくる
+  // 関数numをみる
+  Node *node = num();
+
+  // 関数numの中でposをカウントアップしてる
+  // consumeはposをもとにtokenの値を引数と比較するヘルパ
+  // consumeの中でもposをインクリメントするから注意
+  // やりたいことは、1+2+3-4を走査していって、
+  // こういうノードをつくること
+  //      -
+  //    +    4
+  //   +  3
+  //  1 2
+  // 
+  // 1・2・+すべてnode
+  //    +  ←ty
+  //  1   2
+  // ↑lhs  ↑rhs
+  // そして↑の構成全体も1nodeになる
+
+
+  for(;;) {
+    if(consume('+'))
+      node = new_node('+', node, num());
+    else if(consume('-'))
+      node = new_node('-', node, num());
+    else
+      return node;
+  }
+}
+
+Node *num() {
+  // posはグローバル変数、初期値は当然0
+  //いろんな関数で値を更新するから半端なくわかりにくい
+  // 数字であれば、数字のノードを返却
+  if(tokens[pos].ty == TK_NUM) 
+    // 値を設定してposインクリメント。これもわかりにくい
+    return new_node_num(tokens[pos++].val);
+  
+  error_at(tokens[pos].input, "数値でも()でもないトークンです");
+}
+```
+
+
+
+
+
+
 
 
 
