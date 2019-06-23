@@ -9,4 +9,5 @@
 .vscode
 *.out
 *.s
+*.plist
 !Makefile
