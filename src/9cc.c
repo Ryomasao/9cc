@@ -1,46 +1,53 @@
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // トークンの型を表す値
-enum {
-  TK_NUM = 256, // 整数トークン
+typedef enum {
+  TK_RESERVED,  // 記号
+  TK_NUM,       // 整数トークン
   TK_EOF,       // 入力の終わりを表すトークン
-};
+} TokenKind;
 
-enum {
-  ND_NUM = 256, // 整数のノードの型
-};
+// 抽象構文木のノードの種類
+typedef enum {
+  ND_ADD, // +
+  ND_SUB, // -
+  ND_MUL, // *
+  ND_DIV, // /
+  ND_NUM, // 整数
+} NodeKind;
 
 // Node型の中にNodeがある
 // typef struct Node　としておくと、lhsとかでNode型がわからないことによるwarningが消えた
 typedef struct Node
 {
-  int ty;           // 演算子かND_NUM
+  NodeKind kind;    // 演算子かND_NUM
   struct Node *lhs; // 左辺
   struct Node *rhs; // 右辺
-  int val;          // tyがND_NUMの場合のみ使う
+  int val;          // kindがND_NUMの場合のみ使う
 } Node;
 
 
 // トークンの型
-typedef struct {
-  int ty;       // トークンの型
-  int val;      // tyがTK_NUMの場合、その数値
-  char *input;  // トークン文字列 (エラーメッセージ用)
+typedef struct Token {
+  TokenKind kind;        // トークンの型
+  struct Token *next;    // 次の入力トークン 
+  int val;               // kindがTK_NUMの場合、その数値
+  char *str;             // トークン文字列 (エラーメッセージ用)
 } Token;
+
+// 現在着目しているトークン
+Token *token;
 
 // 入力プログラム
 char *user_input;
 
 // 現在のtokenのindex
 int pos = 0;
-
-// トークナイズした結果のトークン列を格納する配列
-// とりあえず100個
-Token tokens[100];
 
 // エラーを報告するための関数
 // printfと同じ引数をとる
@@ -75,27 +82,58 @@ void error_at(char *loc, char*msg) {
   exit(1);
 }
 
-Node *new_node(int ty, Node *lhs, Node *rhs) {
-  Node *node = malloc(sizeof(Node));
-  node->ty = ty;
+// 新しいトークンを作成してcurに繋げる
+Token *new_token(TokenKind kind, Token *cur, char *str) {
+  Token *tok = calloc(1, sizeof(Token));
+  tok->kind = kind;
+  tok->str = str;
+  cur->next = tok;
+  return tok;
+}
+
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = kind;
   node->lhs = lhs;
   node->rhs = rhs;
   return node;
 }
 
 Node *new_node_num(int val) {
-  Node *node = malloc(sizeof(Node));
-  node->ty = ND_NUM;
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_NUM;
   node->val = val;
   return node;
 }
 
-int consume(int ty) {
-  if(tokens[pos].ty != ty)
-    return 0;
+// 次のトークンが期待している記号のときは、トークンを1つ読み進めて真を返す
+// それ以外の場合はfalse
+bool consume(char op) {
+  if(token->kind != TK_RESERVED || token->str[0] != op)
+    return false;
+  
+  token = token->next;
+  return true;
+}
 
-  pos++;
-  return 1;
+// 次のトークンが期待している記号のときは、トークンを1つ読み進める
+// それ以外の場合は、エラーを報告する
+void expect(char op) {
+  if(token->kind != TK_RESERVED || token->str[0] != op)
+    error("'%c'ではありません", op);
+  
+  token = token->next;
+}
+
+// 次のトークンが数値の場合、トークンを1つ読み進めて、その数値を返す
+// それ以外の場合は、エラーを報告する
+int expect_number() {
+  if(token->kind != TK_NUM) 
+    error("数ではありません");
+
+  int val = token->val;
+  token = token->next;
+  return val;
 }
 
 Node *expr();
@@ -103,16 +141,11 @@ Node *expr();
 Node *term() {
   if(consume('(')) {
     Node *node = expr();
-    if(!consume(')')) 
-      error_at(tokens[pos].input, "対応する括弧がありません");
-
+    expect(')');
     return node;
   }
 
-  if(tokens[pos].ty == TK_NUM) 
-    return new_node_num(tokens[pos++].val);
-
-  error_at(tokens[pos].input, "数値じゃないトークンです");
+  return new_node_num(expect_number());
 }
 
 
@@ -120,9 +153,9 @@ Node *mul() {
   Node *node = term();
   for(;;) {
     if(consume('*'))
-      node = new_node('*', node, term());
+      node = new_node(ND_MUL, node, term());
     else if(consume('/'))
-      node = new_node('/', node, term());
+      node = new_node(ND_DIV, node, term());
     else
       return node;
   }
@@ -132,18 +165,20 @@ Node *expr() {
   Node *node = mul();
   for(;;) {
     if(consume('+'))
-      node = new_node('+', node, mul());
+      node = new_node(ND_ADD, node, mul());
     else if(consume('-'))
-      node = new_node('-', node, mul());
+      node = new_node(ND_SUB, node, mul());
     else
       return node;
   }
 }
 
-// user_inputが指している文字列をトークンに分割して、tokensに保存する
-void tokenize() {
-  char *p = user_input;
-  int i = 0;
+// 入力文字列pをトークナイズして、それを返す
+Token *tokenize(char *p) {
+
+  Token head;
+  head.next = NULL;
+  Token *cur = &head;
 
   while(*p) {
     // 空白文字はskip
@@ -153,26 +188,21 @@ void tokenize() {
     }
 
     if(*p == '+' || *p == '-'  || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
-      tokens[i].ty = *p;
-      tokens[i].input = p;
-      i++;
-      p++;
+      cur = new_token(TK_RESERVED, cur, p++);
       continue;
     }
 
     if(isdigit(*p)) {
-      tokens[i].ty = TK_NUM;
-      tokens[i].input = p;
-      tokens[i].val = strtol(p, &p, 10);
-      i++;
+      cur = new_token(TK_NUM, cur, p);
+      cur->val = strtol(p, &p, 10);
       continue;
     }
 
     error_at(p, "トークナイスできません");
   }
 
-  tokens[i].ty = TK_EOF;
-  tokens[i].input = p;
+  new_token(TK_EOF, cur, p);
+  return head.next;
 }
 
 // 以下のノードを考えてみよう
@@ -203,7 +233,7 @@ void tokenize() {
 // 2の再帰が、略...
 
 void gen(Node *node) {
-  if(node->ty == ND_NUM) {
+  if(node->kind == ND_NUM) {
     // 数値だったらスタックにpush
     printf("  push %d\n", node->val);
     return;
@@ -215,17 +245,17 @@ void gen(Node *node) {
   printf("  pop rdi\n");
   printf("  pop rax\n");
 
-  switch (node->ty) {
-    case '+':
+  switch (node->kind) {
+    case ND_ADD:
       printf("  add rax, rdi\n");
       break;
-    case '-':
+    case ND_SUB:
       printf("  sub rax, rdi\n");
       break;
-    case '*':
+    case ND_MUL:
       printf("  imul rax, rdi\n");
       break;
-    case '/':
+    case ND_DIV:
       //  1 + 2 / 2の場合、構文木はこう
       //
       //    +
@@ -262,8 +292,7 @@ int main(int argc, char **argv) {
   }
 
   // トークナイズする
-  user_input = argv[1];
-  tokenize();
+  token = tokenize(argv[1]);
   Node *node = expr();
 
   // アセンブリの前半部分を出力
