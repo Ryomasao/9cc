@@ -148,14 +148,25 @@ Node *term() {
   return new_node_num(expect_number());
 }
 
+Node *unary() {
+    // +3とかはただの3にする
+    if(consume('+'))
+    return term();
+
+    // -3は 0 - 3のノードにする
+    if(consume('-'))
+      return new_node(ND_SUB, new_node_num(0), term());
+    
+    return term();
+}
 
 Node *mul() {
-  Node *node = term();
+  Node *node = unary();
   for(;;) {
     if(consume('*'))
-      node = new_node(ND_MUL, node, term());
+      node = new_node(ND_MUL, node, unary());
     else if(consume('/'))
-      node = new_node(ND_DIV, node, term());
+      node = new_node(ND_DIV, node, unary());
     else
       return node;
   }
