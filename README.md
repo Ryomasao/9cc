@@ -315,6 +315,21 @@ term = num | "(" expr ")"
 1. expr2は結果、 1+2のnodeを返す
 
 
+##### 08-unary  
+単項演算子 +3 or -3とか。
+-3はわかるけど+3は使わない。-があるから、+を追加したとのこと。  
+
+単項演算子を加味すると以下の通りになる
+
+```
+expr = mul ("+" mul | "-" mul)*
+mul = unary("*" unary | "/" unary)*
+unary = ("+" | "-") ? term
+term = num | "(" expr ")"
+```
+
+
+
 
 
 
