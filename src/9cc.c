@@ -108,13 +108,25 @@ Node *term() {
 }
 
 
-Node *expr() {
+Node *mul() {
   Node *node = term();
   for(;;) {
+    if(consume('*'))
+      node = new_node('*', node, term());
+    else if(consume('/'))
+      node = new_node('/', node, term());
+    else
+      return node;
+  }
+}
+
+Node *expr() {
+  Node *node = mul();
+  for(;;) {
     if(consume('+'))
-      node = new_node('+', node, term());
+      node = new_node('+', node, mul());
     else if(consume('-'))
-      node = new_node('-', node, term());
+      node = new_node('-', node, mul());
     else
       return node;
   }
@@ -132,7 +144,7 @@ void tokenize() {
       continue;
     }
 
-    if(*p == '+' || *p == '-' ) {
+    if(*p == '+' || *p == '-'  || *p == '*' || *p == '/') {
       tokens[i].ty = *p;
       tokens[i].input = p;
       i++;
@@ -201,6 +213,33 @@ void gen(Node *node) {
       break;
     case '-':
       printf("  sub rax, rdi\n");
+      break;
+    case '*':
+      printf("  imul rax, rdi\n");
+      break;
+    case '/':
+      //  1 + 2 / 2の場合、構文木はこう
+      //
+      //    +
+      //  1   /
+      //     2  3
+      //
+      // スタックは、以下の順に積まれる
+      //  3
+      //  2
+      //  1
+      //
+      // idiv rax rdi という命令セットはないとのこと
+      // idivはrdx とRDXとRAXを連結して128ビット整数にする
+      // それを引数のrdiレジスタの64ビットの値で割り、商をRAXにあまりをRDXにセットする
+      // cqoを使うと、RAXを128ビットに伸ばして、RDXとRAXにセットすることができる
+      // まとめると、 2 / 3の場合
+      // pop rdi ⇨ 3
+      // pop rax ⇨ 2
+      // raxの2を128ビットに拡張して、 2の値を、 rdiの3でわる。結果がraxにセットされる
+
+      printf("  cqo\n");
+      printf("  idiv rdi\n");
       break;
   }
 
