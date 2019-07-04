@@ -18,6 +18,10 @@ typedef enum {
   ND_SUB, // -
   ND_MUL, // *
   ND_DIV, // /
+  ND_LT,  // <
+  ND_LTE, // <=
+  ND_GT,  // >
+  ND_GTE, // >=
   ND_NUM, // 整数
 } NodeKind;
 
@@ -38,6 +42,7 @@ typedef struct Token {
   struct Token *next;    // 次の入力トークン 
   int val;               // kindがTK_NUMの場合、その数値
   char *str;             // トークン文字列 (エラーメッセージ用)
+  int len;               // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
 } Token;
 
 // 現在着目しているトークン
@@ -108,8 +113,10 @@ Node *new_node_num(int val) {
 
 // 次のトークンが期待している記号のときは、トークンを1つ読み進めて真を返す
 // それ以外の場合はfalse
-bool consume(char op) {
-  if(token->kind != TK_RESERVED || token->str[0] != op)
+bool consume(char *op) {
+  if(token->kind != TK_RESERVED || 
+     strlen(op) != token->len ||
+     memcmp(token->str, op, token->len))
     return false;
   
   token = token->next;
@@ -118,9 +125,11 @@ bool consume(char op) {
 
 // 次のトークンが期待している記号のときは、トークンを1つ読み進める
 // それ以外の場合は、エラーを報告する
-void expect(char op) {
-  if(token->kind != TK_RESERVED || token->str[0] != op)
-    error("'%c'ではありません", op);
+void expect(char *op) {
+  if(token->kind != TK_RESERVED || 
+     strlen(op) != token->len ||
+     memcmp(token->str, op, token->len))
+    error("'%s'ではありません", op);
   
   token = token->next;
 }
@@ -172,7 +181,7 @@ Node *mul() {
   }
 }
 
-Node *expr() {
+Node *add() {
   Node *node = mul();
   for(;;) {
     if(consume('+'))
@@ -182,6 +191,27 @@ Node *expr() {
     else
       return node;
   }
+}
+
+Node *relational() {
+  Node *node = add();
+  for(;;) {
+    if(consume('<'))
+      node = new_node(ND_LT, node, add());
+    else if(consume('<='))
+      node = new_node(ND_LTE, node, add());
+    else if(consume('>'))
+      node = new_node(ND_GT, node, add());
+    else if(consume('>='))
+      node = new_node(ND_GTE, node, add());
+    else
+      return node;
+  }
+}
+
+
+Node *expr() {
+  return relational();
 }
 
 // 入力文字列pをトークナイズして、それを返す
@@ -198,12 +228,22 @@ Token *tokenize(char *p) {
       continue;
     }
 
+    if(*p ==  '>' && !memcmp(p, ">=", 2)) {
+      cur = new_token(TK_RESERVED, cur, p);
+      cur->len = 2;
+      p += 2;
+      continue;
+    }
+
     if(*p == '+' || *p == '-'  || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
       cur = new_token(TK_RESERVED, cur, p++);
+      cur->len = 1;
       continue;
     }
 
     if(isdigit(*p)) {
+      // p++ しなくていいのかなとおもったけど、strtolが10進数以外の文字のとこまでのアドレスを
+      // pに設定してくれている
       cur = new_token(TK_NUM, cur, p);
       cur->val = strtol(p, &p, 10);
       continue;
@@ -295,13 +335,11 @@ void gen(Node *node) {
   printf("  push rax\n");
 }
 
-
 int main(int argc, char **argv) {
   if(argc != 2) {
     fprintf(stderr, "引数の数が正しくありません\n");
     return 1;
   }
-
   // トークナイズする
   token = tokenize(argv[1]);
   Node *node = expr();
@@ -320,3 +358,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
