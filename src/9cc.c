@@ -339,7 +339,7 @@ void gen(Node *node) {
       break;
     case ND_LTE:
       printf("  cmp rax, rdi\n");
-      printf("  sete al\n");
+      printf("  setle al\n");
       printf("  movzb rax, al\n");
       break;
   }
