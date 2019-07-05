@@ -4,7 +4,7 @@
 https://www.sigbus.info/compilerbook
 
 
-## 準備
+## 準備
 Linux環境でやったほがいいとのことなのでdockerを使う。
 dockerを久しぶりさわっていろいろ忘れてた。
 
