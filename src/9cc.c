@@ -20,6 +20,8 @@ typedef enum {
   ND_DIV, // /
   ND_LT,  // <
   ND_LTE, // <=
+  ND_EQ,  // ==
+  ND_NEQ, // !=
   ND_NUM, // 整数
 } NodeKind;
 
@@ -208,6 +210,19 @@ Node *relational() {
   }
 }
 
+Node *qualty() {
+  Node *node = relational();
+  for(;;) {
+    if(consume("=="))
+      node = new_node(ND_EQ, node, relational());
+    else if(consume("!="))
+      node = new_node(ND_NEQ, node, relational());
+    else
+      return node;
+
+  }
+}
+
 
 Node *expr() {
   return relational();
@@ -237,6 +252,20 @@ Token *tokenize(char *p) {
     }
 
     if(*p ==  '<' && !memcmp(p, "<=", 2)) {
+      cur = new_token(TK_RESERVED, cur, p);
+      cur->len = 2;
+      p += 2;
+      continue;
+    }
+
+    if(*p ==  '=' && !memcmp(p, "==", 2)) {
+      cur = new_token(TK_RESERVED, cur, p);
+      cur->len = 2;
+      p += 2;
+      continue;
+    }
+
+    if(*p ==  '!' && !memcmp(p, "!=", 2)) {
       cur = new_token(TK_RESERVED, cur, p);
       cur->len = 2;
       p += 2;
@@ -343,11 +372,27 @@ void gen(Node *node) {
       // pop rdi ⇨ 3
       // pop rax ⇨ 2
       // raxの2を128ビットに拡張して、 2の値を、 rdiの3でわる。結果がraxにセットされる
-
       printf("  cqo\n");
       printf("  idiv rdi\n");
       break;
     case ND_LT:
+      // SF <> OFの場合、1をセット
+      // SF <> OFが < になるのかよくわからない
+      // note)
+      // SF: 計算結果が負のとき0になる。cmp 1 2 は 1-2をしているとのことなので、SFは0になる
+      // OF: 符号あり整数の桁あふれが発生した場合に1。 1-2はマイナスになるけど、これは桁あふれ？
+      printf("  cmp rax, rdi\n");
+      printf("  setl al\n");
+      printf("  movzb rax, al\n");
+      break;
+    case ND_LTE:
+      // ZFが1ならZFをセット
+      // または、SF <> OFの場合、1をセット
+      printf("  cmp rax, rdi\n");
+      printf("  setle al\n");
+      printf("  movzb rax, al\n");
+      break;
+    case ND_EQ:
       // cmpした結果、フラグレジスタ(ZFとかSF)の結果がかわる
       // seteはフラグレジスタの結果をalにセットする
       // 正確に書くと、ZFレジスタの値を参照する
@@ -357,14 +402,10 @@ void gen(Node *node) {
       printf("  sete al\n");
       printf("  movzb rax, al\n");
       break;
-    case ND_LTE:
-      // setleはZFが1ならZFをセット
-      // そうじゃない場合、SF <> OFとなってるんだけど、 SF <> OFが < になるのかよくわからない
-      // note)
-      // SF: 計算結果が負のとき0になる。cmp 1 2 は 1-2をしているとのことなので、SFは0になる
-      // OF: 符号あり整数の桁あふれが発生した場合に1。 1-2はマイナスになるけど、これは桁あふれ？
+    case ND_NEQ:
+      // ZFが0の場合1をセット
       printf("  cmp rax, rdi\n");
-      printf("  setle al\n");
+      printf("  setne al\n");
       printf("  movzb rax, al\n");
       break;
   }
