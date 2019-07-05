@@ -243,7 +243,16 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    if(*p == '+' || *p == '-'  || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
+    if(*p == '+' || 
+       *p == '-' || 
+       *p == '*' || 
+       *p == '/' || 
+       *p == '(' || 
+       *p == ')' ||
+       *p == '<' ||
+       *p == '>' 
+      ) 
+    {
       cur = new_token(TK_RESERVED, cur, p++);
       cur->len = 1;
       continue;
@@ -338,7 +347,22 @@ void gen(Node *node) {
       printf("  cqo\n");
       printf("  idiv rdi\n");
       break;
+    case ND_LT:
+      // cmpした結果、フラグレジスタ(ZFとかSF)の結果がかわる
+      // seteはフラグレジスタの結果をalにセットする
+      // 正確に書くと、ZFレジスタの値を参照する
+      // https://www.felixcloutier.com/x86/setcc
+      // ZFレジスタは、cmp rax rdiをやったとき、rax rdiが同じ値なら1がセットされる
+      printf("  cmp rax, rdi\n");
+      printf("  sete al\n");
+      printf("  movzb rax, al\n");
+      break;
     case ND_LTE:
+      // setleはZFが1ならZFをセット
+      // そうじゃない場合、SF <> OFとなってるんだけど、 SF <> OFが < になるのかよくわからない
+      // note)
+      // SF: 計算結果が負のとき0になる。cmp 1 2 は 1-2をしているとのことなので、SFは0になる
+      // OF: 符号あり整数の桁あふれが発生した場合に1。 1-2はマイナスになるけど、これは桁あふれ？
       printf("  cmp rax, rdi\n");
       printf("  setle al\n");
       printf("  movzb rax, al\n");
