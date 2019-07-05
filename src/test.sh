@@ -11,12 +11,12 @@ try() {
   echo $expected
 
   if [ "$actual" = "$expected" ]; then
-    echo "$input => $actual"
+    echo "$input ====> $actual"
   else
     echo "$expected exptected, but got $actual"
     exit 1
   fi
 }
 
-try 2 " (1 + 2) * 3 / (1 + 2) - 1 - +1 - -1"
+try 1 " 3 <= (1 + 2)"
 echo OK
