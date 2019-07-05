@@ -148,9 +148,9 @@ int expect_number() {
 Node *expr();
 
 Node *term() {
-  if(consume('(')) {
+  if(consume("(")) {
     Node *node = expr();
-    expect(')');
+    expect(")");
     return node;
   }
 
@@ -159,11 +159,11 @@ Node *term() {
 
 Node *unary() {
     // +3とかはただの3にする
-    if(consume('+'))
+    if(consume("+"))
     return term();
 
     // -3は 0 - 3のノードにする
-    if(consume('-'))
+    if(consume("-"))
       return new_node(ND_SUB, new_node_num(0), term());
     
     return term();
@@ -172,9 +172,9 @@ Node *unary() {
 Node *mul() {
   Node *node = unary();
   for(;;) {
-    if(consume('*'))
+    if(consume("*"))
       node = new_node(ND_MUL, node, unary());
-    else if(consume('/'))
+    else if(consume("/"))
       node = new_node(ND_DIV, node, unary());
     else
       return node;
@@ -184,9 +184,9 @@ Node *mul() {
 Node *add() {
   Node *node = mul();
   for(;;) {
-    if(consume('+'))
+    if(consume("+"))
       node = new_node(ND_ADD, node, mul());
-    else if(consume('-'))
+    else if(consume("-"))
       node = new_node(ND_SUB, node, mul());
     else
       return node;
@@ -196,13 +196,13 @@ Node *add() {
 Node *relational() {
   Node *node = add();
   for(;;) {
-    if(consume('<'))
+    if(consume("<"))
       node = new_node(ND_LT, node, add());
-    else if(consume('<='))
+    else if(consume("<="))
       node = new_node(ND_LTE, node, add());
-    else if(consume('>'))
+    else if(consume(">"))
       node = new_node(ND_GT, node, add());
-    else if(consume('>='))
+    else if(consume(">="))
       node = new_node(ND_GTE, node, add());
     else
       return node;
@@ -229,6 +229,13 @@ Token *tokenize(char *p) {
     }
 
     if(*p ==  '>' && !memcmp(p, ">=", 2)) {
+      cur = new_token(TK_RESERVED, cur, p);
+      cur->len = 2;
+      p += 2;
+      continue;
+    }
+
+    if(*p ==  '<' && !memcmp(p, "<=", 2)) {
       cur = new_token(TK_RESERVED, cur, p);
       cur->len = 2;
       p += 2;
@@ -329,6 +336,11 @@ void gen(Node *node) {
 
       printf("  cqo\n");
       printf("  idiv rdi\n");
+      break;
+    case ND_LTE:
+      printf("  cmp rax, rdi\n");
+      printf("  sete al\n");
+      printf("  movzb rax, al\n");
       break;
   }
 
