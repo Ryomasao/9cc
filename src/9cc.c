@@ -20,8 +20,6 @@ typedef enum {
   ND_DIV, // /
   ND_LT,  // <
   ND_LTE, // <=
-  ND_GT,  // >
-  ND_GTE, // >=
   ND_NUM, // 整数
 } NodeKind;
 
@@ -201,9 +199,10 @@ Node *relational() {
     else if(consume("<="))
       node = new_node(ND_LTE, node, add());
     else if(consume(">"))
-      node = new_node(ND_GT, node, add());
+      node = new_node(ND_LT, add(), node);
     else if(consume(">="))
-      node = new_node(ND_GTE, node, add());
+      // 左辺と右辺を入れ替えて、<= を使うようにする:
+      node = new_node(ND_LTE, add(), node);
     else
       return node;
   }
@@ -228,9 +227,11 @@ Token *tokenize(char *p) {
       continue;
     }
 
+    // > と >= は >=を優先してトークナイズする
     if(*p ==  '>' && !memcmp(p, ">=", 2)) {
       cur = new_token(TK_RESERVED, cur, p);
       cur->len = 2;
+      // 2文字進める
       p += 2;
       continue;
     }
