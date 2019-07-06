@@ -20,6 +20,8 @@ typedef enum {
   ND_DIV, // /
   ND_LT,  // <
   ND_LTE, // <=
+  ND_EQ,  // ==
+  ND_NEQ, // !=
   ND_NUM, // 整数
 } NodeKind;
 

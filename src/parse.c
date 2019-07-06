@@ -62,8 +62,8 @@ Node *new_node_num(int val) {
 // それ以外の場合はfalse
 bool consume(char *op) {
   if(token->kind != TK_RESERVED || 
-     strlen(op) != token->len ||
-     memcmp(token->str, op, token->len))
+    strlen(op) != token->len ||
+    memcmp(token->str, op, token->len))
     return false;
   
   token = token->next;
@@ -74,8 +74,8 @@ bool consume(char *op) {
 // それ以外の場合は、エラーを報告する
 void expect(char *op) {
   if(token->kind != TK_RESERVED || 
-     strlen(op) != token->len ||
-     memcmp(token->str, op, token->len))
+    strlen(op) != token->len ||
+    memcmp(token->str, op, token->len))
     error("'%s'ではありません", op);
   
   token = token->next;
@@ -157,6 +157,19 @@ Node *relational() {
   }
 }
 
+Node *eqaulity() {
+  Node *node = relational();
+  for(;;) {
+    if(consume("=="))
+      node = new_node(ND_EQ, node, add());
+    else if(consume("!="))
+      node = new_node(ND_NEQ, node, add());
+    else
+      return node;
+  }
+
+}
+
 Node *expr() {
   return relational();
 }
@@ -192,6 +205,27 @@ Token *tokenize(char *p) {
       continue;
     }
 
+    if(*p ==  '=' && !memcmp(p, "==", 2)) {
+      cur = new_token(TK_RESERVED, cur, p);
+      cur->len = 2;
+      p += 2;
+      continue;
+    }
+
+    if(*p ==  '=' && !memcmp(p, "==", 2)) {
+      cur = new_token(TK_RESERVED, cur, p);
+      cur->len = 2;
+      p += 2;
+      continue;
+    }
+
+    if(*p ==  '!' && !memcmp(p, "!=", 2)) {
+      cur = new_token(TK_RESERVED, cur, p);
+      cur->len = 2;
+      p += 2;
+      continue;
+    }
+
     if(*p == '+' || 
        *p == '-' || 
        *p == '*' || 
@@ -216,7 +250,7 @@ Token *tokenize(char *p) {
     }
 
     error_at(p, "トークナイスできません");
-  }
+}
 
   new_token(TK_EOF, cur, p);
   return head.next;
