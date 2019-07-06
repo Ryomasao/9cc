@@ -1,4 +1,4 @@
-# c11:コンパイラの最適化のオプション？
+# c11:Cの最新規格であるC11で書かれたソースコードということみたい
 # -g: デバックオプション　デバッグするときにつけるといいみたい
 # -static: コンパイル時に、ライブラリをバイナリに含めるかどうか、staticは含める
 # 含めないパターンをダイナミックリンクと呼ぶみたい。その場合、実行環境に依存するね
@@ -7,7 +7,11 @@
 # root         19504 Jun 30 07:42 9cc
 # 
 CFLAGS=-std=c11 -g -static
-9cc: 9cc.c
+SRCS=$(wildcard *.c)
+OBJS=$(SRCS:.c=.o)
+9cc: $(OBJS)
+			$(CC) -o 9cc $(OBJS) $(LDFLAGS)
+$(OBJS): 9cc.h
 test: 9cc
 	./test.sh
 clean:

@@ -9,4 +9,5 @@
 *.out
 *.s
 *.plist
+*.o
 !Makefile
