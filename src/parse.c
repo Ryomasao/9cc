@@ -92,12 +92,30 @@ int expect_number() {
   return val;
 }
 
+Token *consume_ident() {
+  if(token->kind == TK_IDENT)  {
+    Token *tok = token;
+    token = token->next;
+    return tok;
+  }
+}
+
+// termの中で再帰するのでここに関数のみ宣言しとく
 Node *expr();
 
 Node *term() {
   if(consume("(")) {
     Node *node = expr();
     expect(")");
+    return node;
+  }
+
+
+  Token *tok = consume_ident();
+  if(tok) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;
+    printf("%c is token\n", tok->str[0]);
     return node;
   }
 
@@ -168,6 +186,16 @@ Node *eqaulity() {
       return node;
   }
 
+}
+
+Node *assign() {
+  Node *node = eqaulity();
+  for(;;) {
+    if(consume("="))
+      node = new_node(ND_LVAR, node, assign());
+    else
+      return node;
+  }
 }
 
 Node *expr() {

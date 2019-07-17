@@ -15,15 +15,17 @@ typedef enum {
 
 // 抽象構文木のノードの種類
 typedef enum {
-  ND_ADD, // +
-  ND_SUB, // -
-  ND_MUL, // *
-  ND_DIV, // /
-  ND_LT,  // <
-  ND_LTE, // <=
-  ND_EQ,  // ==
-  ND_NEQ, // !=
-  ND_NUM, // 整数
+  ND_ADD,       // +
+  ND_SUB,       // -
+  ND_MUL,       // *
+  ND_DIV,       // /
+  ND_LT,        // <
+  ND_LTE,       // <=
+  ND_EQ,        // ==
+  ND_NEQ,       // !=
+  ND_NUM,       // 整数
+  ND_ASSIGN,    // =
+  ND_LVAR,      // ローカル変数
 } NodeKind;
 
 // Node型の中にNodeがある
@@ -34,6 +36,7 @@ typedef struct Node
   struct Node *lhs; // 左辺
   struct Node *rhs; // 右辺
   int val;          // kindがND_NUMの場合のみ使う
+  int offset;       // kindがND_LVARの場合のみ使う
 } Node;
 
 
