@@ -6,7 +6,8 @@ int main(int argc, char **argv) {
     return 1;
   }
   // トークナイズする
-  token = tokenize(argv[1]);
+  user_input = argv[1];
+  token = tokenize(user_input);
   Node *node = expr();
 
   // アセンブリの前半部分を出力
@@ -14,7 +15,7 @@ int main(int argc, char **argv) {
   printf(".global main\n");
   printf("main:\n");
 
-  gen(node);
+  //gen(node);
 
   // スタックトップに式全体の値が残っているはずなので
   // それをRAXにロードして関数からの返り値とする
