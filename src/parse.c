@@ -92,6 +92,19 @@ int expect_number() {
   return val;
 }
 
+// 次のトークンがidentのときはそのトークン(のアドレス)を返し、トークンを1つ読み進めておく
+// それ以外の場合は、NULLを返したいんだけど、NULLをどう扱っていいかわからない問題
+Token *consume_ident(){
+  if(token->kind == TK_IDENT) {
+    Token *identToken = token;
+    token = token->next;
+    return identToken;
+  }
+
+  // ひとまず0を返す 当初returnを省略してたら、謎のアドレスが返されていたので。
+  return 0;
+}
+
 Node *expr();
 
 Node *term() {
@@ -101,13 +114,21 @@ Node *term() {
     return node;
   }
 
+  Token *tok = consume_ident();
+  if(tok) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;
+    node->offset = (tok->str[0] - 'a' + 1) * 8;
+    return node;
+  }
+
   return new_node_num(expect_number());
 }
 
 Node *unary() {
     // +3とかはただの3にする
     if(consume("+"))
-    return term();
+      return term();
 
     // -3は 0 - 3のノードにする
     if(consume("-"))
@@ -170,8 +191,17 @@ Node *eqaulity() {
 
 }
 
+Node *assign() {
+  Node *node =  eqaulity();
+  if(consume("=")) {
+    return new_node(ND_ASSIGN, node, assign());
+  }
+  
+  return node;
+}
+
 Node *expr() {
-  return eqaulity();
+  return assign();
 }
 
 
