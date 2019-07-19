@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   printf(".global main\n");
   printf("main:\n");
 
-  //gen(node);
+  gen(node);
 
   // スタックトップに式全体の値が残っているはずなので
   // それをRAXにロードして関数からの返り値とする
