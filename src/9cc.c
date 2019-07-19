@@ -5,8 +5,11 @@ int main(int argc, char **argv) {
     fprintf(stderr, "引数の数が正しくありません\n");
     return 1;
   }
-  // トークナイズする
+
+  // ユーザー入力値をグローバル変数として取っておく
+  // エラー関数用
   user_input = argv[1];
+  // トークナイズする
   token = tokenize(user_input);
   Node *node = expr();
 
