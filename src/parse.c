@@ -242,13 +242,6 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    if(*p ==  '=' && !memcmp(p, "==", 2)) {
-      cur = new_token(TK_RESERVED, cur, p);
-      cur->len = 2;
-      p += 2;
-      continue;
-    }
-
     if(*p ==  '!' && !memcmp(p, "!=", 2)) {
       cur = new_token(TK_RESERVED, cur, p);
       cur->len = 2;
@@ -263,7 +256,8 @@ Token *tokenize(char *p) {
        *p == '(' || 
        *p == ')' ||
        *p == '<' ||
-       *p == '>' 
+       *p == '>' ||
+       *p == '=' 
       ) 
     {
       cur = new_token(TK_RESERVED, cur, p++);

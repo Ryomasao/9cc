@@ -28,6 +28,7 @@
 // 2の再帰が、略...
 
 void gen(Node *node) {
+
   if(node->kind == ND_NUM) {
     // 数値だったらスタックにpush
     printf("  push %d\n", node->val);
