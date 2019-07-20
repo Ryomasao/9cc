@@ -97,6 +97,9 @@ void gen(Node *node) {
       // 正確に書くと、ZFレジスタの値を参照する
       // https://www.felixcloutier.com/x86/setcc
       // ZFレジスタは、cmp rax rdiをやったとき、rax rdiが同じ値なら1がセットされる
+      // alはraxレジスタの下位8bit
+      // sete raxができればいいんだけど、フラグレジスタの値はal経由でしかできないみたい
+      // mobzvはraxの上位56bitをゼロクリアする
       printf("  cmp rax, rdi\n");
       printf("  sete al\n");
       printf("  movzb rax, al\n");
