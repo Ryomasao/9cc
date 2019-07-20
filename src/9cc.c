@@ -18,11 +18,21 @@ int main(int argc, char **argv) {
   printf(".global main\n");
   printf("main:\n");
 
-  gen(node);
+  // プロローグ処理
+  printf(" push rbp\n");
+  printf(" mov rbp, rsp\n");
+  // 変数26個分の領域を確保する
+  printf(" sub rsp, 208\n");
 
+  gen(node);
   // スタックトップに式全体の値が残っているはずなので
   // それをRAXにロードして関数からの返り値とする
   printf("  pop rax\n");
+
+
+  // エピローグ
+  printf(" mov rsp, rbp\n");
+  printf(" pop rbp\n");
   printf("  ret\n");
 
   return 0;
