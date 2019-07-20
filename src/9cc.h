@@ -62,5 +62,8 @@ Node *expr();
 // コードジェネレータ
 void gen(Node *node);
 
+// エラー関数
+void error(char *fmt, ...);
+
 
 
