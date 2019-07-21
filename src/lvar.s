@@ -44,16 +44,6 @@ main:
   mov rax, [rax]
   push rax
 
-  # こっから gen(node-rhs)
-  push 2
-
-  #　二つの値を取り出している
-  pop rdi
-  pop rax
-
-  # でもなにもしないぜ戻す
-  push rax
-
   pop rax
 
   # エピローグ処理
