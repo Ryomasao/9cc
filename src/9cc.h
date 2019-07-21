@@ -49,14 +49,12 @@ typedef struct Token {
   int len;               // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
 } Token;
 
-// 現在着目しているトークン
-Token *token;
 
 // 入力プログラム
 char *user_input;
 
 // parse機能
-Token *tokenize(char *p);
+void tokenize(char *p);
 void program();
 // コードジェネレータ
 void gen();

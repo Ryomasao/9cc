@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   // エラー関数用
   user_input = argv[1];
   // トークナイズする
-  token = tokenize(user_input);
+  tokenize(user_input);
   program();
 
   // アセンブリの前半部分を出力

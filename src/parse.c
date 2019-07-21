@@ -1,5 +1,8 @@
 #include "9cc.h"
 
+// 現在着目しているトークン
+Token *token;
+
 // エラーを報告するための関数
 // printfと同じ引数をとる
 // 可変長引数については、一旦棚にあげておこう
@@ -227,7 +230,7 @@ void program() {
 
 
 // 入力文字列pをトークナイズして、それを返す
-Token *tokenize(char *p) {
+void tokenize(char *p) {
 
   Token head;
   head.next = NULL;
@@ -306,5 +309,5 @@ Token *tokenize(char *p) {
 }
 
   new_token(TK_EOF, cur, p);
-  return head.next;
+  token = head.next;
 }
