@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   user_input = argv[1];
   // トークナイズする
   token = tokenize(user_input);
-  Node *node = expr();
+  program();
 
   // アセンブリの前半部分を出力
   printf(".intel_syntax noprefix\n");
@@ -19,20 +19,22 @@ int main(int argc, char **argv) {
   printf("main:\n");
 
   // プロローグ処理
-  printf(" push rbp\n");
-  printf(" mov rbp, rsp\n");
+  printf("  push rbp\n");
+  printf("  mov rbp, rsp\n");
   // 変数26個分の領域を確保する
-  printf(" sub rsp, 208\n");
+  printf("  sub rsp, 208\n");
 
-  gen(node);
-  // スタックトップに式全体の値が残っているはずなので
-  // それをRAXにロードして関数からの返り値とする
-  printf("  pop rax\n");
+  for(int i = 0; code[i]; i++) {
+    gen(code[i]);
+    // スタックトップに式全体の値が残っているはずなので
+    // それをRAXにロードして関数からの返り値とする
+    printf("  pop rax\n");
+  }
 
 
   // エピローグ
-  printf(" mov rsp, rbp\n");
-  printf(" pop rbp\n");
+  printf("  mov rsp, rbp\n");
+  printf("  pop rbp\n");
   printf("  ret\n");
 
   return 0;

@@ -57,13 +57,11 @@ char *user_input;
 
 // parse機能
 Token *tokenize(char *p);
-Node *expr();
-
+void program();
 // コードジェネレータ
-void gen(Node *node);
+void gen();
 
 // エラー関数
 void error(char *fmt, ...);
 
-
-
+Node *code[100];

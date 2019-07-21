@@ -93,7 +93,7 @@ int expect_number() {
 }
 
 // 次のトークンがidentのときはそのトークン(のアドレス)を返し、トークンを1つ読み進めておく
-// それ以外の場合は、NULLを返したいんだけど、NULLをどう扱っていいかわからない問題
+// それ以外の場合は、NULLを返す
 Token *consume_ident(){
   if(token->kind == TK_IDENT) {
     Token *identToken = token;
@@ -101,8 +101,13 @@ Token *consume_ident(){
     return identToken;
   }
 
-  // ひとまず0を返す 当初returnを省略してたら、謎のアドレスが返されていたので。
-  return 0;
+  return NULL;
+}
+
+bool at_eof() {
+  if(token->kind == TK_EOF) 
+    return true;
+  return false;
 }
 
 Node *expr();
@@ -204,6 +209,22 @@ Node *expr() {
   return assign();
 }
 
+Node *stmt() {
+  Node *node = expr();
+  expect(";");
+  return node;
+}
+
+void program() {
+  int i = 0;
+
+  while(!at_eof()) 
+    code[i++] = stmt();
+
+  code[i] = NULL;
+  
+}
+
 
 // 入力文字列pをトークナイズして、それを返す
 Token *tokenize(char *p) {
@@ -257,7 +278,8 @@ Token *tokenize(char *p) {
        *p == ')' ||
        *p == '<' ||
        *p == '>' ||
-       *p == '=' 
+       *p == '=' || 
+       *p == ';'
       ) 
     {
       cur = new_token(TK_RESERVED, cur, p++);
