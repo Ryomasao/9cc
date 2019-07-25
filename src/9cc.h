@@ -13,6 +13,26 @@ typedef enum {
   TK_EOF,       // 入力の終わりを表すトークン
 } TokenKind;
 
+// トークンの型
+typedef struct Token {
+  TokenKind kind;        // トークンの型
+  struct Token *next;    // 次の入力トークン 
+  int val;               // kindがTK_NUMの場合、その数値
+  char *str;             // トークン文字列 (エラーメッセージ用)
+  int len;               // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
+} Token;
+
+typedef struct Lvar {
+  Lvar *next;   // 次の変数かNULL
+  char *name;   // 変数の名前
+  int len;      // 名前の長さ
+  int offset;   // RBPからのオフセット
+} Lvar;
+
+// ローカル変数
+Lvar *loclas;
+
+
 // 抽象構文木のノードの種類
 typedef enum {
   ND_ADD,    // +
@@ -38,16 +58,6 @@ typedef struct Node
   int val;          // kindがND_NUMの場合のみ使う
   int offset;       // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
 } Node;
-
-
-// トークンの型
-typedef struct Token {
-  TokenKind kind;        // トークンの型
-  struct Token *next;    // 次の入力トークン 
-  int val;               // kindがTK_NUMの場合、その数値
-  char *str;             // トークン文字列 (エラーメッセージ用)
-  int len;               // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
-} Token;
 
 
 // 入力プログラム

@@ -228,6 +228,17 @@ void program() {
   
 }
 
+// 引数から変数名として使える文字列を取得する
+int getLVarLength(char *p) {
+  char *target = p;
+  int length = 0;
+
+  while('a' <= *target && *target <='z') {
+    length++;
+    target++;
+  }
+  return length;
+}
 
 // 入力文字列pをトークナイズして、それを返す
 void tokenize(char *p) {
@@ -298,10 +309,12 @@ void tokenize(char *p) {
       continue;
     }
 
-    // 変数
+    // 変数はaからzで始まっているものとする
     if('a' <= *p && *p <='z') {
-      cur = new_token(TK_IDENT, cur, p++);
-      cur->len = 1;
+      int length = getLVarLength(p);
+      cur = new_token(TK_IDENT, cur, p);
+      cur->len = length;
+      p = p + length;
       continue;
     }
 
