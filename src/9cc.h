@@ -8,33 +8,10 @@
 // トークンの型を表す値
 typedef enum {
   TK_RESERVED,  // 記号
+  TK_IDENT,     // 識別子
   TK_NUM,       // 整数トークン
   TK_EOF,       // 入力の終わりを表すトークン
 } TokenKind;
-
-// 抽象構文木のノードの種類
-typedef enum {
-  ND_ADD, // +
-  ND_SUB, // -
-  ND_MUL, // *
-  ND_DIV, // /
-  ND_LT,  // <
-  ND_LTE, // <=
-  ND_EQ,  // ==
-  ND_NEQ, // !=
-  ND_NUM, // 整数
-} NodeKind;
-
-// Node型の中にNodeがある
-// typef struct Node　としておくと、lhsとかでNode型がわからないことによるwarningが消えた
-typedef struct Node
-{
-  NodeKind kind;    // 演算子かND_NUM
-  struct Node *lhs; // 左辺
-  struct Node *rhs; // 右辺
-  int val;          // kindがND_NUMの場合のみ使う
-} Node;
-
 
 // トークンの型
 typedef struct Token {
@@ -45,18 +22,54 @@ typedef struct Token {
   int len;               // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
 } Token;
 
-// 現在着目しているトークン
-Token *token;
+typedef struct Lvar {
+  Lvar *next;   // 次の変数かNULL
+  char *name;   // 変数の名前
+  int len;      // 名前の長さ
+  int offset;   // RBPからのオフセット
+} Lvar;
+
+// ローカル変数
+Lvar *loclas;
+
+
+// 抽象構文木のノードの種類
+typedef enum {
+  ND_ADD,    // +
+  ND_SUB,    // -
+  ND_MUL,    // *
+  ND_DIV,    // /
+  ND_LT,     // <
+  ND_LTE,    // <=
+  ND_EQ,     // ==
+  ND_NEQ,    // !=
+  ND_NUM,    // 整数
+  ND_ASSIGN, // =
+  ND_LVAR,   // ローカル変数
+} NodeKind;
+
+// Node型の中にNodeがある
+// typef struct Node　としておくと、lhsとかでNode型がわからないことによるwarningが消えた
+typedef struct Node
+{
+  NodeKind kind;    // 演算子かND_NUM
+  struct Node *lhs; // 左辺
+  struct Node *rhs; // 右辺
+  int val;          // kindがND_NUMの場合のみ使う
+  int offset;       // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
+} Node;
+
 
 // 入力プログラム
 char *user_input;
 
 // parse機能
-Token *tokenize(char *p);
-Node *expr();
-
+void tokenize(char *p);
+void program();
 // コードジェネレータ
-void gen(Node *node);
+void gen();
 
+// エラー関数
+void error(char *fmt, ...);
 
-
+Node *code[100];

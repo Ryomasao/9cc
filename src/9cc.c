@@ -5,20 +5,36 @@ int main(int argc, char **argv) {
     fprintf(stderr, "引数の数が正しくありません\n");
     return 1;
   }
+
+  // ユーザー入力値をグローバル変数として取っておく
+  // エラー関数用
+  user_input = argv[1];
   // トークナイズする
-  token = tokenize(argv[1]);
-  Node *node = expr();
+  tokenize(user_input);
+  program();
 
   // アセンブリの前半部分を出力
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
 
-  gen(node);
+  // プロローグ処理
+  printf("  push rbp\n");
+  printf("  mov rbp, rsp\n");
+  // 変数26個分の領域を確保する
+  printf("  sub rsp, 208\n");
 
-  // スタックトップに式全体の値が残っているはずなので
-  // それをRAXにロードして関数からの返り値とする
-  printf("  pop rax\n");
+  for(int i = 0; code[i]; i++) {
+    gen(code[i]);
+    // スタックトップに式全体の値が残っているはずなので
+    // それをRAXにロードして関数からの返り値とする
+    printf("  pop rax\n");
+  }
+
+
+  // エピローグ
+  printf("  mov rsp, rbp\n");
+  printf("  pop rbp\n");
   printf("  ret\n");
 
   return 0;

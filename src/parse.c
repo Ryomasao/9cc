@@ -1,5 +1,8 @@
 #include "9cc.h"
 
+// 現在着目しているトークン
+Token *token;
+
 // エラーを報告するための関数
 // printfと同じ引数をとる
 // 可変長引数については、一旦棚にあげておこう
@@ -92,6 +95,24 @@ int expect_number() {
   return val;
 }
 
+// 次のトークンがidentのときはそのトークン(のアドレス)を返し、トークンを1つ読み進めておく
+// それ以外の場合は、NULLを返す
+Token *consume_ident(){
+  if(token->kind == TK_IDENT) {
+    Token *identToken = token;
+    token = token->next;
+    return identToken;
+  }
+
+  return NULL;
+}
+
+bool at_eof() {
+  if(token->kind == TK_EOF) 
+    return true;
+  return false;
+}
+
 Node *expr();
 
 Node *term() {
@@ -101,13 +122,21 @@ Node *term() {
     return node;
   }
 
+  Token *tok = consume_ident();
+  if(tok) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;
+    node->offset = (tok->str[0] - 'a' + 1) * 8;
+    return node;
+  }
+
   return new_node_num(expect_number());
 }
 
 Node *unary() {
     // +3とかはただの3にする
     if(consume("+"))
-    return term();
+      return term();
 
     // -3は 0 - 3のノードにする
     if(consume("-"))
@@ -170,13 +199,49 @@ Node *eqaulity() {
 
 }
 
-Node *expr() {
-  return relational();
+Node *assign() {
+  Node *node =  eqaulity();
+  if(consume("=")) {
+    return new_node(ND_ASSIGN, node, assign());
+  }
+  
+  return node;
 }
 
+Node *expr() {
+  return assign();
+}
+
+Node *stmt() {
+  Node *node = expr();
+  expect(";");
+  return node;
+}
+
+void program() {
+  int i = 0;
+
+  while(!at_eof()) 
+    code[i++] = stmt();
+
+  code[i] = NULL;
+  
+}
+
+// 引数から変数名として使える文字列を取得する
+int getLVarLength(char *p) {
+  char *target = p;
+  int length = 0;
+
+  while('a' <= *target && *target <='z') {
+    length++;
+    target++;
+  }
+  return length;
+}
 
 // 入力文字列pをトークナイズして、それを返す
-Token *tokenize(char *p) {
+void tokenize(char *p) {
 
   Token head;
   head.next = NULL;
@@ -212,13 +277,6 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    if(*p ==  '=' && !memcmp(p, "==", 2)) {
-      cur = new_token(TK_RESERVED, cur, p);
-      cur->len = 2;
-      p += 2;
-      continue;
-    }
-
     if(*p ==  '!' && !memcmp(p, "!=", 2)) {
       cur = new_token(TK_RESERVED, cur, p);
       cur->len = 2;
@@ -233,7 +291,9 @@ Token *tokenize(char *p) {
        *p == '(' || 
        *p == ')' ||
        *p == '<' ||
-       *p == '>' 
+       *p == '>' ||
+       *p == '=' || 
+       *p == ';'
       ) 
     {
       cur = new_token(TK_RESERVED, cur, p++);
@@ -249,9 +309,18 @@ Token *tokenize(char *p) {
       continue;
     }
 
+    // 変数はaからzで始まっているものとする
+    if('a' <= *p && *p <='z') {
+      int length = getLVarLength(p);
+      cur = new_token(TK_IDENT, cur, p);
+      cur->len = length;
+      p = p + length;
+      continue;
+    }
+
     error_at(p, "トークナイスできません");
 }
 
   new_token(TK_EOF, cur, p);
-  return head.next;
+  token = head.next;
 }

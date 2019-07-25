@@ -7,7 +7,7 @@
 
 # you can edit following line
 *.out
-*.s
+tmp.s
 *.plist
 *.o
 !Makefile

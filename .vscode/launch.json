@@ -8,14 +8,13 @@
       "name": "gcc build and debug active file",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${fileDirname}/${fileBasenameNoExtension}",
-      "args": ["1>=(1+2)"],
-      "stopAtEntry": false,
+      "program": "${workspaceFolder}/src/9cc",
+      "args": ["a=1;b=a;"],
+      "stopAtEntry": true,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
       "MIMode": "lldb",
-      "preLaunchTask": "gcc build active file"
     }
   ]
 }
