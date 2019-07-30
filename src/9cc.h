@@ -22,6 +22,9 @@ typedef struct Token {
   int len;               // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
 } Token;
 
+// 現在着目しているトークン
+Token *token;
+
 typedef struct Lvar {
   struct Lvar *next;   // 次の変数かNULL
   char *name;   // 変数の名前
