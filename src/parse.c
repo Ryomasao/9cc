@@ -107,6 +107,9 @@ Token *consume_ident(){
   return NULL;
 }
 
+// グローバル変数のlocalsは変数名を格納しているリスト
+// tokenに格納されている変数名がすでに存在しているかを確認する
+// 存在していれば変数名のLvarを、なければNULLを返す
 Lvar *find_lvar(Token *token) {
   for(Lvar *var = locals; var; var = var->next) {
     if(var->len == token->len && !memcmp(var->name, token->str, token->len)) {
@@ -116,6 +119,7 @@ Lvar *find_lvar(Token *token) {
   return NULL;
 }
 
+// localsのリストの最後のアイテムを返す
 Lvar *getLastLocalsVar() {
   Lvar *temp = locals;
   while(temp->next) 
@@ -139,19 +143,24 @@ Node *term() {
   }
 
   Token *tok = consume_ident();
+  // Tokenが変数の場合
   if(tok) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
 
+    // Tokenの変数が新しいものか、既存のものかを調べる
     Lvar *lvar = find_lvar(tok);
     if(lvar) {
       node->offset = lvar->offset;
     } else {
+      // 新規の場合、Lvarをつくって、リストをつなげてく
       lvar = calloc(1, sizeof(Lvar));
       lvar->name = tok->str;
       lvar->len = tok->len;
       Lvar *prevVar = getLastLocalsVar();
+      // offsetは8バイト？ずつ足してく
       lvar->offset = prevVar->offset + 8;
+      node->offset = lvar->offset;
       prevVar->next = lvar;
     }
 
