@@ -38,5 +38,5 @@ echo "### == !=の確認"
 try 1 "1 == 1;"
 try 1 "1 != 2;"
 echo "変数割り当て"
-try 5 "a=2;b=a;1+2*b;"
+try 5 "amazing=2;number=amazing;1+2*number;"
 echo OK
