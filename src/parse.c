@@ -107,6 +107,22 @@ Token *consume_ident(){
   return NULL;
 }
 
+Lvar *find_lvar(Token *token) {
+  for(Lvar *var = locals; var; var = var->next) {
+    if(var->len == token->len && !memcmp(var->name, token->str, token->len)) {
+      return var;
+    }
+  }
+  return NULL;
+}
+
+Lvar *getLastLocalsVar() {
+  Lvar *temp = locals;
+  while(temp->next) 
+    temp = temp->next;
+  return temp;
+}
+
 bool at_eof() {
   if(token->kind == TK_EOF) 
     return true;
@@ -126,7 +142,19 @@ Node *term() {
   if(tok) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
-    node->offset = (tok->str[0] - 'a' + 1) * 8;
+
+    Lvar *lvar = find_lvar(tok);
+    if(lvar) {
+      node->offset = lvar->offset;
+    } else {
+      lvar = calloc(1, sizeof(Lvar));
+      lvar->name = tok->str;
+      lvar->len = tok->len;
+      Lvar *prevVar = getLastLocalsVar();
+      lvar->offset = prevVar->offset + 8;
+      prevVar->next = lvar;
+    }
+
     return node;
   }
 

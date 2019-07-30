@@ -9,6 +9,12 @@ int main(int argc, char **argv) {
   // ユーザー入力値をグローバル変数として取っておく
   // エラー関数用
   user_input = argv[1];
+
+  // ローカル変数格納用の変数の初期設定
+  // これにより、localsの先頭はゴミデータになっちゃうので微妙
+  locals = calloc(1, sizeof(Lvar));
+  locals->next = NULL;
+
   // トークナイズする
   tokenize(user_input);
   program();

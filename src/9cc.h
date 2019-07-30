@@ -23,15 +23,14 @@ typedef struct Token {
 } Token;
 
 typedef struct Lvar {
-  Lvar *next;   // 次の変数かNULL
+  struct Lvar *next;   // 次の変数かNULL
   char *name;   // 変数の名前
   int len;      // 名前の長さ
   int offset;   // RBPからのオフセット
 } Lvar;
 
 // ローカル変数
-Lvar *loclas;
-
+Lvar *locals;
 
 // 抽象構文木のノードの種類
 typedef enum {
