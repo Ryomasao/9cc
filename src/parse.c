@@ -216,9 +216,20 @@ Node *expr() {
 }
 
 Node *stmt() {
-  Node *node = expr();
+  Node *node;
+  node = expr();
   expect(";");
   return node;
+
+  //if(consume(TK_RETURN)) {
+  //  node = calloc(1, sizeof(Node));
+  //  node->kind = ND_RETURN;
+  //  node->lhs = expr();
+  //} else {
+  //  node = expr();
+  //}
+  //expect(";");
+  //return node;
 }
 
 void program() {

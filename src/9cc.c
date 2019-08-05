@@ -9,6 +9,13 @@ int main(int argc, char **argv) {
   // ユーザー入力値をグローバル変数として取っておく
   // エラー関数用
   user_input = argv[1];
+  int mode = argv[2];
+
+  char *filePath = argv[1];
+  char input[MAX_LINE][MAX_COLUMN] = {};
+  
+  if(!readFile(filePath, input))
+    return -1;
 
   // ローカル変数格納用の変数の初期設定
   // これにより、localsの先頭はゴミデータになっちゃうので微妙
@@ -16,7 +23,7 @@ int main(int argc, char **argv) {
   locals->next = NULL;
 
   // トークナイズする
-  tokenize(user_input);
+  tokenize(input);
   program();
 
   // アセンブリの前半部分を出力
@@ -43,6 +50,6 @@ int main(int argc, char **argv) {
   printf("  pop rbp\n");
   printf("  ret\n");
 
-  return 0;
+  return 1;
 }
 
