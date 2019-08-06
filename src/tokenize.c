@@ -43,87 +43,107 @@ int getLVarLength(char *p) {
   return length;
 }
 
+// cがアルファベットか数字であれば1を返す
+int is_alnum(char c) {
+  return ('a' <= c && c<= 'z') ||
+   ('A' <= c && c<= 'Z') ||
+   ('0' <= c && c<= '9') ||
+   (c == '_');
+}
+
 // 入力文字列pをトークナイズして、それを返す
-void tokenize(char *p) {
+void tokenize(char input[][MAX_COLUMN] ) {
 
   Token head;
   head.next = NULL;
   Token *cur = &head;
 
-  while(*p) {
-    // 空白文字はskip
-    if(isspace(*p)) {
-      p++;
-      continue;
+  int line = 0;
+  char *p;
+
+  while(input[line][0] != EOF) {
+    p = input[line];
+    while(*p) {
+      // 空白文字はskip
+      if(isspace(*p)) {
+        p++;
+        continue;
+      }
+
+      // > と >= は >=を優先してトークナイズする
+      if(*p ==  '>' && !memcmp(p, ">=", 2)) {
+        cur = new_token(TK_RESERVED, cur, p);
+        cur->len = 2;
+        // 2文字進める
+        p += 2;
+        continue;
+      }
+
+      if(*p ==  '<' && !memcmp(p, "<=", 2)) {
+        cur = new_token(TK_RESERVED, cur, p);
+        cur->len = 2;
+        p += 2;
+        continue;
+      }
+
+      if(*p ==  '=' && !memcmp(p, "==", 2)) {
+        cur = new_token(TK_RESERVED, cur, p);
+        cur->len = 2;
+        p += 2;
+        continue;
+      }
+
+      if(*p ==  '!' && !memcmp(p, "!=", 2)) {
+        cur = new_token(TK_RESERVED, cur, p);
+        cur->len = 2;
+        p += 2;
+        continue;
+      }
+
+      if(*p == '+' || 
+         *p == '-' || 
+         *p == '*' || 
+         *p == '/' || 
+         *p == '(' || 
+         *p == ')' ||
+         *p == '<' ||
+         *p == '>' ||
+         *p == '=' || 
+         *p == ';'
+        ) 
+      {
+        cur = new_token(TK_RESERVED, cur, p++);
+        cur->len = 1;
+        continue;
+      }
+
+      if(isdigit(*p)) {
+        // p++ しなくていいのかなとおもったけど、strtolが10進数以外の文字のとこまでのアドレスを
+        // pに設定してくれている
+        cur = new_token(TK_NUM, cur, p);
+        cur->val = strtol(p, &p, 10);
+        continue;
+      }
+
+      // 変数はaからzで始まっているものとする
+      if('a' <= *p && *p <='z') {
+        int length = getLVarLength(p);
+        cur = new_token(TK_IDENT, cur, p);
+        cur->len = length;
+        p = p + length;
+        continue;
+      }
+
+      // return
+      if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+          cur = new_token(TK_RETURN, cur, p);
+          cur->len = 6;
+          p = p + 6;
+      }
+      error_at(p, "トークナイスできません");
     }
-
-    // > と >= は >=を優先してトークナイズする
-    if(*p ==  '>' && !memcmp(p, ">=", 2)) {
-      cur = new_token(TK_RESERVED, cur, p);
-      cur->len = 2;
-      // 2文字進める
-      p += 2;
-      continue;
-    }
-
-    if(*p ==  '<' && !memcmp(p, "<=", 2)) {
-      cur = new_token(TK_RESERVED, cur, p);
-      cur->len = 2;
-      p += 2;
-      continue;
-    }
-
-    if(*p ==  '=' && !memcmp(p, "==", 2)) {
-      cur = new_token(TK_RESERVED, cur, p);
-      cur->len = 2;
-      p += 2;
-      continue;
-    }
-
-    if(*p ==  '!' && !memcmp(p, "!=", 2)) {
-      cur = new_token(TK_RESERVED, cur, p);
-      cur->len = 2;
-      p += 2;
-      continue;
-    }
-
-    if(*p == '+' || 
-       *p == '-' || 
-       *p == '*' || 
-       *p == '/' || 
-       *p == '(' || 
-       *p == ')' ||
-       *p == '<' ||
-       *p == '>' ||
-       *p == '=' || 
-       *p == ';'
-      ) 
-    {
-      cur = new_token(TK_RESERVED, cur, p++);
-      cur->len = 1;
-      continue;
-    }
-
-    if(isdigit(*p)) {
-      // p++ しなくていいのかなとおもったけど、strtolが10進数以外の文字のとこまでのアドレスを
-      // pに設定してくれている
-      cur = new_token(TK_NUM, cur, p);
-      cur->val = strtol(p, &p, 10);
-      continue;
-    }
-
-    // 変数はaからzで始まっているものとする
-    if('a' <= *p && *p <='z') {
-      int length = getLVarLength(p);
-      cur = new_token(TK_IDENT, cur, p);
-      cur->len = length;
-      p = p + length;
-      continue;
-    }
-
-    error_at(p, "トークナイスできません");
-}
-
+    line++;
+  }
   new_token(TK_EOF, cur, p);
   token = head.next;
 }

@@ -2,8 +2,15 @@
 try() {
   expected="$1"
   input="$2"
+  mode="$3"
 
-  ./9cc "$input" > tmp.s
+  # 引数の数$# が3なら、mode付きで実行
+  if [ $# -eq 3 ]; then
+    ./9cc "$input" "$mode" > tmp.s
+  else
+    ./9cc "$input" > tmp.s
+  fi
+
   gcc -o tmp tmp.s
   ./tmp
   actual="$?"
@@ -39,4 +46,6 @@ try 1 "1 == 1;"
 try 1 "1 != 2;"
 echo "変数割り当て"
 try 5 "amazing=2;number=amazing;1+2*number;"
+echo "ファイルからの読み込み"
+try 5 "../code/mylang.c" "true"
 echo OK

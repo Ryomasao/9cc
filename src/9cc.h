@@ -9,6 +9,7 @@
 typedef enum {
   TK_RESERVED,  // 記号
   TK_IDENT,     // 識別子
+  TK_RETURN,    // return文
   TK_NUM,       // 整数トークン
   TK_EOF,       // 入力の終わりを表すトークン
 } TokenKind;
@@ -48,6 +49,7 @@ typedef enum {
   ND_NUM,    // 整数
   ND_ASSIGN, // =
   ND_LVAR,   // ローカル変数
+  ND_RETURN, // return
 } NodeKind;
 
 // Node型の中にNodeがある
@@ -62,11 +64,16 @@ typedef struct Node
 } Node;
 
 
+// ファイル読み込み
+#define MAX_LINE 100
+#define MAX_COLUMN 80
+int readFile(char *path, char input[][MAX_COLUMN]);
+
 // 入力プログラム
 char *user_input;
 
 // parse機能
-void tokenize(char *p);
+void tokenize(char input[][MAX_COLUMN]);
 void program();
 // コードジェネレータ
 void gen();
