@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/src/9cc",
-      "args": ["1+1;", ""],
+      "args": ["../code/mylang.c", ""],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/src",
       "environment": [],

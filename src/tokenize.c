@@ -125,6 +125,16 @@ void tokenize(char input[][MAX_COLUMN] ) {
         continue;
       }
 
+      // 予約語
+      // return
+      if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+          cur = new_token(TK_RESERVED, cur, p);
+          cur->len = 6;
+          p = p + 6;
+          continue;
+      }
+
+      // 微妙だけど、予約語を変数名より優先して判定するようにする
       // 変数はaからzで始まっているものとする
       if('a' <= *p && *p <='z') {
         int length = getLVarLength(p);
@@ -134,13 +144,9 @@ void tokenize(char input[][MAX_COLUMN] ) {
         continue;
       }
 
-      // return
-      if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
-          cur = new_token(TK_RETURN, cur, p);
-          cur->len = 6;
-          p = p + 6;
-      }
+
       error_at(p, "トークナイスできません");
+
     }
     line++;
   }

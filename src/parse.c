@@ -217,19 +217,17 @@ Node *expr() {
 
 Node *stmt() {
   Node *node;
-  node = expr();
+
+  if(consume("return")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_RETURN;
+    node->lhs = expr();
+  } else {
+    node = expr();
+  }
+
   expect(";");
   return node;
-
-  //if(consume(TK_RETURN)) {
-  //  node = calloc(1, sizeof(Node));
-  //  node->kind = ND_RETURN;
-  //  node->lhs = expr();
-  //} else {
-  //  node = expr();
-  //}
-  //expect(";");
-  //return node;
 }
 
 void program() {
