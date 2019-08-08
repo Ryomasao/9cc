@@ -215,6 +215,11 @@ Node *expr() {
   return assign();
 }
 
+
+// statementは以下のいずれかを想定している
+// return;
+// if(expr) statement;
+// expr;
 Node *stmt() {
   Node *node;
 
@@ -222,14 +227,24 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
+  } else if(consume("if")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_IF;
+    expect("(");
+    node->lhs = expr();
+    expect(")");
+    node->rhs = stmt();
+    return node;
   } else {
     node = expr();
   }
 
   expect(";");
+
   return node;
 }
 
+// code[]にはstatement;という単位で格納されていくはず
 void program() {
   int i = 0;
 

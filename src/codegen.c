@@ -65,6 +65,19 @@ void gen(Node *node) {
       printf("  pop rbp\n");
       printf("  ret\n");
       return;
+    case ND_IF:
+      // if(node->lhs) node-rhsの形式になってる
+      // まずは、node-lhsのコードをつくる
+      gen(node->lhs);
+      // node->lhsの結果がスタックトップに残っているはずなのでpop
+      printf("  pop rax\n");
+      // スタックトップの結果と0を比較
+      printf("  cmp rax, 0\n");
+      // スタックトップが0ならnode->rhsの命令を行わない
+      printf("  je .Lend000\n");
+      gen(node->rhs);
+      printf(".Lend000:\n");
+      return;
   }
 
   gen(node->lhs);

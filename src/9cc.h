@@ -50,6 +50,7 @@ typedef enum {
   ND_ASSIGN, // =
   ND_LVAR,   // ローカル変数
   ND_RETURN, // return
+  ND_IF,     // IF
 } NodeKind;
 
 // Node型の中にNodeがある
