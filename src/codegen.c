@@ -1,5 +1,19 @@
 #include "9cc.h"
 
+int LabelId = 0;
+// if文を制御するラベルにユニークなIDをつけるための関数
+char* createLabelName() {
+  LabelId++;
+
+  if(LabelId  > 9999) {
+    error("Label名は4桁までしか対応してないでござる\n");
+  }
+  // ひとまず.Lend0001の形式を想定するので8バイト
+  char *labelName = calloc(1, 8);
+  sprintf(labelName, ".Lend%d", LabelId);
+  return labelName;
+}
+
 // 変数名に対応しているスタックのアドレスをスタックに積んどく関数
 void gen_lval(Node *node) {
   if(node->kind != ND_LVAR)
@@ -74,9 +88,10 @@ void gen(Node *node) {
       // スタックトップの結果と0を比較
       printf("  cmp rax, 0\n");
       // スタックトップが0ならnode->rhsの命令を行わない
-      printf("  je .Lend000\n");
+      char *labelName = createLabelName();
+      printf("  je %s\n", labelName);
       gen(node->rhs);
-      printf(".Lend000:\n");
+      printf("%s:\n", labelName);
       return;
   }
 

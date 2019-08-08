@@ -48,4 +48,6 @@ echo "変数割り当て"
 try 5 "amazing=2;number=amazing;1+2*number;"
 echo "ファイルからの読み込み + return"
 try 3 "../code/mylang.c" "true"
+echo "if文"
+try 3 "../code/test/if.c" "true"
 echo OK
