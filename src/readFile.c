@@ -6,7 +6,7 @@ int readFile(char *path, char code[][MAX_COLUMN]) {
   fp = fopen(path, "r");
 
   if(fp == NULL) {
-    printf("ファイルのオープンに失敗しました\n");
+    printf("ファイル:%sのオープンに失敗しました\n", path);
     return -1;
   }
 
