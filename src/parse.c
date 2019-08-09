@@ -103,7 +103,6 @@ bool at_eof() {
   return false;
 }
 
-Node *expr();
 
 Node *term() {
   if(consume("(")) {
@@ -219,31 +218,39 @@ Node *expr() {
   return assign();
 }
 
+Node *if_statement(Node *node) {
+  // if文はまだ1statementしかかけない仕様
+  // if(expr) statement;
+  // else statement;
+  //
+  // if elseパターン
+  if(consume_token("else", token->next)) {
 
-// statementは以下のいずれかを想定している
-// return;
-// if(expr) statement;
-// expr;
-Node *stmt() {
-  Node *node;
-
-  if(consume("return")) {
-    node = calloc(1, sizeof(Node));
-    node->kind = ND_RETURN;
-    node->lhs = expr();
-  } else if(consume("if")) {
-    // if文はまだ1statementしかかけない仕様
-    // if(expr) statement;
-    // else statement;
-    //
+  } else {
     // ifパターン
-    // if elseパターン
     node = calloc(1, sizeof(Node));
     node->kind = ND_IF;
     expect("(");
     node->lhs = expr();
     expect(")");
     node->rhs = stmt();
+    return node;
+  }
+}
+
+// statementは以下のいずれかを想定している
+// return;
+// if(expr) statement;
+// expr;
+Node *stmt() {
+    Node *node;
+
+  if(consume("return")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_RETURN;
+    node->lhs = expr();
+  } else if(consume("if")) {
+    node = if_statement(node);
     return node;
   } else {
     node = expr();

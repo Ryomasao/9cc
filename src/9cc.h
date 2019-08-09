@@ -76,6 +76,8 @@ char *user_input;
 // parse機能
 void tokenize(char input[][MAX_COLUMN]);
 void program();
+Node *expr();
+Node *stmt();
 // コードジェネレータ
 void gen();
 
