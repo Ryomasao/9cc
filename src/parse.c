@@ -27,20 +27,24 @@ Node *new_node_num(int val) {
   return node;
 }
 
-// targetTokenが期待している記号のときは、トークンを1つ読み進めて真を返す
-bool consume_token(char *op, Token *targetToken) {
+// 指定されたトークンが期待している記号のときは真を返す
+bool is_supposed_token(char *op, Token *targetToken) {
   if(targetToken->kind != TK_RESERVED || 
     strlen(op) != targetToken->len ||
     memcmp(targetToken->str, op, targetToken->len))
     return false;
-  
-  token = targetToken->next;
+
   return true;
 }
 
 // 次のトークンが期待している記号のときは、トークンを1つ読み進めて真を返す
 bool consume(char *op) {
-  return consume_token(op, token);
+  if(is_supposed_token(op, token)) {
+    token = token->next;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // 次のトークンが期待している記号のときは、トークンを1つ読み進める
@@ -224,7 +228,8 @@ Node *if_statement(Node *node) {
   // else statement;
   //
   // if elseパターン
-  if(consume_token("else", token->next)) {
+  if(is_supposed_token("else", token->next)) {
+
 
   } else {
     // ifパターン
