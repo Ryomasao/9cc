@@ -1,6 +1,10 @@
 #include "9cc.h"
 
+
 int LabelId = 0;
+char labelStack [9][100];
+
+
 // if文を制御するラベルにユニークなIDをつけるための関数
 char* createLabelName() {
   LabelId++;
@@ -79,7 +83,7 @@ void gen(Node *node) {
       printf("  pop rbp\n");
       printf("  ret\n");
       return;
-    case ND_IF:
+    case ND_IF: {
       // if(node->lhs) node-rhsの形式になってる
       // まずは、node-lhsのコードをつくる
       gen(node->lhs);
@@ -93,6 +97,21 @@ void gen(Node *node) {
       gen(node->rhs);
       printf("%s:\n", labelName);
       return;
+    }
+    case ND_IF_ELSE_STMT: {
+      char *elseLabel = createLabelName();
+      char *endLabel = createLabelName();
+      // then
+      gen(node->lhs);
+      printf("  je %s\n", elseLabel);
+      gen(node->lhs);
+      printf("  jmp %s\n", endLabel);
+      // else
+      printf("%s:\n", elseLabel);
+      gen(node->rhs);
+      printf("%s:\n", endLabel);
+      return;
+    }
   }
 
   gen(node->lhs);

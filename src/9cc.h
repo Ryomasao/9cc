@@ -38,19 +38,21 @@ Lvar *locals;
 
 // 抽象構文木のノードの種類
 typedef enum {
-  ND_ADD,    // +
-  ND_SUB,    // -
-  ND_MUL,    // *
-  ND_DIV,    // /
-  ND_LT,     // <
-  ND_LTE,    // <=
-  ND_EQ,     // ==
-  ND_NEQ,    // !=
-  ND_NUM,    // 整数
-  ND_ASSIGN, // =
-  ND_LVAR,   // ローカル変数
-  ND_RETURN, // return
-  ND_IF,     // IF
+  ND_ADD,           // +
+  ND_SUB,           // -
+  ND_MUL,           // *
+  ND_DIV,           // /
+  ND_LT,            // <
+  ND_LTE,           // <=
+  ND_EQ,            // ==
+  ND_NEQ,           // !=
+  ND_NUM,           // 整数
+  ND_ASSIGN,        // =
+  ND_LVAR,          // ローカル変数
+  ND_RETURN,        // return
+  ND_IF,            // IF
+  ND_IF_ELSE,       // ELSE
+  ND_IF_ELSE_STMT,  // if文のthenとstmtとelseのstmtをもつ
 } NodeKind;
 
 // Node型の中にNodeがある

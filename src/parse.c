@@ -222,22 +222,38 @@ Node *expr() {
   return assign();
 }
 
+Node *if_else_statement() {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_IF_ELSE_STMT;
+  node->lhs = stmt();
+  expect("else");
+  node->rhs = stmt();
+}
+
 Node *if_statement(Node *node) {
   // if文はまだ1statementしかかけない仕様
   // if(expr) statement;
   // else statement;
   //
-  // if elseパターン
-  if(is_supposed_token("else", token->next)) {
 
+  node = calloc(1, sizeof(Node));
+  node->kind = ND_IF;
+  expect("(");
+  node->lhs = expr();
+  expect(")");
 
+  // elseがあるかを確認するため、if(expr) stmt else stmt
+  //                                   ↑を進めとく
+  Token *currentToken = token;
+  stmt();
+
+  if(is_supposed_token("else", token)) {
+    // 進めたtokenを戻す
+    token = currentToken;
+    node->rhs = if_else_statement();
   } else {
-    // ifパターン
-    node = calloc(1, sizeof(Node));
-    node->kind = ND_IF;
-    expect("(");
-    node->lhs = expr();
-    expect(")");
+    // 進めたtokenを戻す
+    token = currentToken;
     node->rhs = stmt();
     return node;
   }
