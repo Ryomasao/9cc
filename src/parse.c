@@ -27,16 +27,20 @@ Node *new_node_num(int val) {
   return node;
 }
 
-// 次のトークンが期待している記号のときは、トークンを1つ読み進めて真を返す
-// それ以外の場合はfalse
-bool consume(char *op) {
-  if(token->kind != TK_RESERVED || 
-    strlen(op) != token->len ||
-    memcmp(token->str, op, token->len))
+// targetTokenが期待している記号のときは、トークンを1つ読み進めて真を返す
+bool consume_token(char *op, Token *targetToken) {
+  if(targetToken->kind != TK_RESERVED || 
+    strlen(op) != targetToken->len ||
+    memcmp(targetToken->str, op, targetToken->len))
     return false;
   
-  token = token->next;
+  token = targetToken->next;
   return true;
+}
+
+// 次のトークンが期待している記号のときは、トークンを1つ読み進めて真を返す
+bool consume(char *op) {
+  return consume_token(op, token);
 }
 
 // 次のトークンが期待している記号のときは、トークンを1つ読み進める
@@ -228,6 +232,12 @@ Node *stmt() {
     node->kind = ND_RETURN;
     node->lhs = expr();
   } else if(consume("if")) {
+    // if文はまだ1statementしかかけない仕様
+    // if(expr) statement;
+    // else statement;
+    //
+    // ifパターン
+    // if elseパターン
     node = calloc(1, sizeof(Node));
     node->kind = ND_IF;
     expect("(");
