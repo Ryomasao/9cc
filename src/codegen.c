@@ -7,19 +7,6 @@ int labelCounter() {
   return LabelId++;
 }
 
-// if文を制御するラベルにユニークなIDをつけるための関数
-char* createLabelName() {
-  LabelId++;
-
-  if(LabelId  > 9999) {
-    error("Label名は4桁までしか対応してないでござる\n");
-  }
-  // ひとまず.Lend0001の形式を想定するので8バイト
-  char *labelName = calloc(1, 8);
-  sprintf(labelName, ".Lend%d", LabelId);
-  return labelName;
-}
-
 // 変数名に対応しているスタックのアドレスをスタックに積んどく関数
 void gen_lval(Node *node) {
   if(node->kind != ND_LVAR)
@@ -113,7 +100,7 @@ void gen(Node *node) {
       printf("  pop rax\n");
       printf("  cmp rax, 0\n");
 
-      printf("  je .ifElse%d\n", elseLabelId);
+      printf("  je .LifElse%d\n", elseLabelId);
       gen(node->rhs);
       return;
     }
@@ -123,11 +110,11 @@ void gen(Node *node) {
 
       // then
       gen(node->lhs);
-      printf("  jmp .ifEnd%d\n", endLabelId);
+      printf("  jmp .LifEnd%d\n", endLabelId);
       // else
-      printf(".ifElse%d:\n", elseLabelId);
+      printf(".LifElse%d:\n", elseLabelId);
       gen(node->rhs);
-      printf(".ifEnd%d:\n", endLabelId);
+      printf(".LifEnd%d:\n", endLabelId);
       return;
     }
   }
