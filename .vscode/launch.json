@@ -5,7 +5,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "gcc build and debug active file",
+      "name": "stack",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/lib/stack/stack",
+      "args": [],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}/src/lib/stack",
+      "environment": [],
+      "externalConsole": false,
+      "preLaunchTask": "build stack",
+      "MIMode": "lldb"
+    },
+    {
+      "name": "9cc",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/src/9cc",
@@ -14,7 +27,8 @@
       "cwd": "${workspaceFolder}/src",
       "environment": [],
       "externalConsole": false,
-      "MIMode": "lldb",
+      "preLaunchTask": "build 9cc",
+      "MIMode": "lldb"
     }
   ]
 }

@@ -5,7 +5,23 @@
   "tasks": [
     {
       "type": "shell",
-      "label": "gcc build active file",
+      "label": "build stack",
+      "command": "/usr/bin/make",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}/src/lib/stack",
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "type": "shell",
+      "label": "build 9cc",
       "command": "/usr/bin/make",
       "args": [],
       "options": {
