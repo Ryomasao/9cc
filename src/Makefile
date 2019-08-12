@@ -15,7 +15,7 @@ LIBOBJECT=./lib/stack/stack.o
 CFLAGS=-std=c11 -g -static -I$(LIBHEADER)
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
-9cc: $(OBJS)
+9cc: $(OBJS) 
 			$(CC) -o 9cc $(OBJS) $(LIBOBJECT) $(LDFLAGS) 
 $(OBJS): 9cc.h
 test: 9cc

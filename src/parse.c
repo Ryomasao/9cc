@@ -235,10 +235,9 @@ Node *if_statement(Node *node) {
   // if(expr) statement;
   // else statement;
   //
-
-
+  // ネストもできないよ
   node = calloc(1, sizeof(Node));
-  node->kind = ND_IF;
+  // ifのNode種別は、elseがあるかどうかで設定値がかわるので、とっておく
   Node *ifNode = node;
 
   expect("(");
@@ -251,11 +250,20 @@ Node *if_statement(Node *node) {
   stmt();
 
   if(is_supposed_token("else", token)) {
+    // ifelseの場合のNodeの構成はこんな感じ
+    //       if
+    //  expr   ifelse
+    //       stmt(then) stmt(else)
+    // 
     ifNode->kind = ND_IF_ELSE;
     // 進めたtokenを戻す
     token = currentToken;
     node->rhs = if_else_statement();
   } else {
+    // ifの場合のNodeの構成はこんな感じ
+    //       if
+    //  expr  stmt
+    node->kind = ND_IF;
     // 進めたtokenを戻す
     token = currentToken;
     node->rhs = stmt();

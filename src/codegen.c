@@ -94,7 +94,6 @@ void gen(Node *node) {
       // スタックトップの結果と0を比較
       printf("  cmp rax, 0\n");
       // スタックトップが0ならnode->rhsの命令を行わない
-
       int labelId = labelCounter();
       printf("  je .Lend%d\n", labelId);
       gen(node->rhs);
@@ -104,6 +103,8 @@ void gen(Node *node) {
     case ND_IF_ELSE: {
       int elseLabelId = labelCounter();
       int endLabelId = labelCounter();
+      // if-elseの場合、if-else-stmtでjmp先のラベルをみる必要がある
+      // 今後、ifがネストされることもあるので、スタック機能をつくってそこに格納しておくことにする
       push(elseLabelId);
       push(endLabelId);
 
@@ -112,7 +113,6 @@ void gen(Node *node) {
       printf("  pop rax\n");
       printf("  cmp rax, 0\n");
 
-      //int labelId = labelCounter();
       printf("  je .ifElse%d\n", elseLabelId);
       gen(node->rhs);
       return;
