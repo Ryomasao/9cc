@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
 
   // ユーザー入力値をグローバル変数として取っておく
   // エラー関数用
+  // TODO: ファイルから読み込む場合に対応してない
   user_input = argv[1];
   char input[MAX_LINE][MAX_COLUMN] = {};
 
@@ -56,6 +57,8 @@ int main(int argc, char **argv) {
   printf("  push rbp\n");
   printf("  mov rbp, rsp\n");
   // 変数26個分の領域を確保する
+  // これやらないとどうなるんだっけ、、、、
+  // rbpからの相対位置で変数を管理してるから必要な気がしてきた
   printf("  sub rsp, 208\n");
 
   for(int i = 0; code[i]; i++) {
