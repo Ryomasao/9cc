@@ -236,8 +236,11 @@ Node *if_statement(Node *node) {
   // else statement;
   //
 
+
   node = calloc(1, sizeof(Node));
   node->kind = ND_IF;
+  Node *ifNode = node;
+
   expect("(");
   node->lhs = expr();
   expect(")");
@@ -248,6 +251,7 @@ Node *if_statement(Node *node) {
   stmt();
 
   if(is_supposed_token("else", token)) {
+    ifNode->kind = ND_IF_ELSE;
     // 進めたtokenを戻す
     token = currentToken;
     node->rhs = if_else_statement();
