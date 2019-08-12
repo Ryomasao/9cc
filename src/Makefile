@@ -6,13 +6,21 @@
 # root        200112 Jun 30 07:41 9cc
 # root         19504 Jun 30 07:42 9cc
 # 
-CFLAGS=-std=c11 -g -static
+
+# ひとまず直接書く
+# /lib/README.mdを参照
+LIBHEADER=./lib/stack
+LIBOBJECT=./lib/stack/stack.o
+
+CFLAGS=-std=c11 -g -static -I$(LIBHEADER)
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 9cc: $(OBJS)
-			$(CC) -o 9cc $(OBJS) $(LDFLAGS)
+			$(CC) -o 9cc $(OBJS) $(LIBOBJECT) $(LDFLAGS) 
 $(OBJS): 9cc.h
 test: 9cc
 	./test.sh
 clean:
 	rm -f 9cc *.o *~ tmp*
+
+.PHONY: test clean

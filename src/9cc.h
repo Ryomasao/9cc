@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "stack.h"
+
 // トークンの型を表す値
 typedef enum {
   TK_RESERVED,  // 記号

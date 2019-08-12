@@ -1,9 +1,11 @@
 #include "9cc.h"
 
-
 int LabelId = 0;
 char labelStack [9][100];
 
+int labelCounter() {
+  return LabelId++;
+}
 
 // if文を制御するラベルにユニークなIDをつけるための関数
 char* createLabelName() {
@@ -92,24 +94,40 @@ void gen(Node *node) {
       // スタックトップの結果と0を比較
       printf("  cmp rax, 0\n");
       // スタックトップが0ならnode->rhsの命令を行わない
-      char *labelName = createLabelName();
-      printf("  je %s\n", labelName);
+
+      int labelId = labelCounter();
+      printf("  je .Lend%d\n", labelId);
       gen(node->rhs);
-      printf("%s:\n", labelName);
+      printf(".Lend%d:\n", labelId);
+      return;
+    }
+    case ND_IF_ELSE: {
+      int elseLabelId = labelCounter();
+      int endLabelId = labelCounter();
+      push(elseLabelId);
+      push(endLabelId);
+
+      // then
+      gen(node->lhs);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+
+      //int labelId = labelCounter();
+      printf("  je .ifElse%d\n", elseLabelId);
+      gen(node->rhs);
       return;
     }
     case ND_IF_ELSE_STMT: {
-      char *elseLabel = createLabelName();
-      char *endLabel = createLabelName();
+      int endLabelId = pop();
+      int elseLabelId = pop();
+
       // then
       gen(node->lhs);
-      printf("  je %s\n", elseLabel);
-      gen(node->lhs);
-      printf("  jmp %s\n", endLabel);
+      printf("  jmp .ifEnd%d\n", endLabelId);
       // else
-      printf("%s:\n", elseLabel);
+      printf(".ifElse%d:\n", elseLabelId);
       gen(node->rhs);
-      printf("%s:\n", endLabel);
+      printf(".ifEnd%d:\n", endLabelId);
       return;
     }
   }
