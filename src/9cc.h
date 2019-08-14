@@ -56,6 +56,10 @@ typedef enum {
   ND_IF_ELSE,       // IFでELSEがあるパターン
   ND_IF_ELSE_STMT,  // if文のthenとstmtとelseのstmtをもつ
   ND_WHILE,         // while
+  ND_FOR,           // ND_FOR
+  ND_FOR_CONTINUE,  // ND_FORの継続条件
+  ND_FOR_LOOP,      // ND_FORの更新
+  ND_FOR_STMT,      // ND_FORのSTMT
 } NodeKind;
 
 // Node型の中にNodeがある

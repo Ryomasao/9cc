@@ -130,6 +130,62 @@ void gen(Node *node) {
       printf(".LWhileEnd%d:\n", whileEndLabelId);
       return;
     }
+    case ND_FOR: {
+      int forBeginLabelId = labelCounter();
+      int forEndLabelId = labelCounter();
+      push(forBeginLabelId);
+      push(forEndLabelId);
+
+      //for(expr; expr; expr;)
+      //     👆 
+
+      //printf("#FOR文の初期化処理\n");
+      gen(node->lhs);
+
+      printf(".LForBegin%d:\n", forBeginLabelId);
+      // to ND_FOR_CONTINUE:
+      gen(node->rhs);
+      printf(".LForEnd%d:\n", forEndLabelId);
+      return;
+    }
+    case ND_FOR_CONTINUE: {
+      int forEndLabelId = pop();
+      //for(expr; expr; expr;)
+      //           👆 
+      //printf("#FOR文の継続判定\n");
+      gen(node->lhs);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+      printf("  je .LForEnd%d\n", forEndLabelId);
+
+      // to ND_FOR_LOOP
+      gen(node->rhs);
+      return;
+    }
+    case ND_FOR_LOOP: {
+      int forBeginLabelId = pop();
+
+      //printf("#FOR文内で実行される式\n");
+      // to ND_FOR_STMT
+      gen(node->rhs);
+
+      //for(expr; expr; expr;)
+      //                 👆 
+      // STMTの処理おわってから、処理を行うので、
+      // rhsとlhsの処理順が逆になってる
+      //printf("#FOR文の後処理\n");
+      gen(node->lhs);
+      printf("  jmp .LForBegin%d\n", forBeginLabelId);
+
+      return;
+    }
+    case ND_FOR_STMT: {
+      //for(expr; expr; expr;)
+      // stmt()
+      //   👆 
+      gen(node->lhs);
+      return;
+    }
   }
 
   gen(node->lhs);

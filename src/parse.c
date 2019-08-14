@@ -282,10 +282,47 @@ Node *while_statement() {
   return node;
 }
 
+Node *for_stmt_statement() {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_FOR_STMT;
+  node->lhs = stmt();
+  return node;
+}
+
+Node *for_loop_statement() {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_FOR_LOOP;
+  node->lhs = expr();
+  expect(")");
+  node->rhs = for_stmt_statement();
+  return node;
+}
+
+Node *for_continue_statement() {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_FOR_CONTINUE;
+  node->lhs = expr();
+  expect(";");
+  node->rhs = for_loop_statement();
+  return node;
+}
+
+// for(expr; expr; expr;) stmt()
+Node *for_statement() {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_FOR;
+  expect("(");
+  node->lhs = expr();
+  expect(";");
+  node->rhs = for_continue_statement();
+  return node;
+}
+
 // statementは以下のいずれかを想定している
 // return;
 // if(expr) statement;
 // while(expr) statement;
+// for(expr; expr; expr;) statement;
 // expr;
 Node *stmt() {
     Node *node;
@@ -299,6 +336,9 @@ Node *stmt() {
     return node;
   } else if(consume("while")) {
     node = while_statement();
+    return node;
+  } else if(consume("for")) {
+    node = for_statement();
     return node;
   } else {
     node = expr();

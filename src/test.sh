@@ -52,4 +52,6 @@ echo "ifelse文"
 try 8 "../code/test/ifelse.c" "true"
 echo "while文"
 try 3 "../code/test/while.c" "true"
+echo "for文"
+try 3 "../code/test/for.c" "true"
 echo OK
