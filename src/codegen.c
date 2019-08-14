@@ -188,6 +188,17 @@ void gen(Node *node) {
       gen(node->lhs);
       return;
     }
+    case ND_BLOCK: {
+      for(int i = 0; node->vector[i]; i++) {
+        gen(node->vector[i]);
+        // statementごとに、最後にスタックにpushしている。スタックが枯渇しないようにpopしておく。
+        // あんま意識してなかった。一つ前の処理の結果をstackに残しておく発想だからかな？
+        printf("  pop rax\n");
+      }
+      // 最期のstmtの処理結果は、codegenを呼ぶ側で処理するので、スタックに戻す
+      printf("  push rax\n");
+      return;
+    }
   }
 
   gen(node->lhs);

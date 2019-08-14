@@ -109,7 +109,9 @@ void tokenize(char input[][MAX_COLUMN] ) {
          *p == '<' ||
          *p == '>' ||
          *p == '=' || 
-         *p == ';'
+         *p == ';' ||
+         *p == '{' ||
+         *p == '}'
         ) 
       {
         cur = new_token(TK_RESERVED, cur, p++);

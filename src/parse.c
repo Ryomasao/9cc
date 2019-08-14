@@ -344,6 +344,31 @@ Node *for_statement() {
   return node;
 }
 
+Node *block_statement() {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_BLOCK;
+
+  // ブロック構文のステートメントを格納する配列
+  // ひとまず固定の長さにする
+
+  // 動的配列で確保できるともっといいね。
+  // 動的配列をvectorっていうのかな。
+
+  // ポインタを格納する配列へのポインタ
+  Node **stmtArray = calloc(100, sizeof(node));
+
+  int stmtIndex = 0;
+  while(!consume("}")) {
+    stmtArray[stmtIndex] =  stmt();
+    stmtIndex++;
+    if(stmtIndex > 100) {
+      error("ブロック構文内のstmtは100個まで");
+    }
+  }
+  node->vector = stmtArray;
+  return node;
+}
+
 // statementは以下のいずれかを想定している
 // return;
 // if(expr) statement;
@@ -365,6 +390,10 @@ Node *stmt() {
     return node;
   } else if(consume("for")) {
     node = for_statement();
+    return node;
+    // ブロック構文
+  } else if(consume("{")) {
+    node = block_statement();
     return node;
   } else {
     node = expr();

@@ -54,4 +54,6 @@ echo "while文"
 try 3 "../code/test/while.c" "true"
 echo "for文"
 try 3 "../code/test/for.c" "true"
+echo "block文"
+try 4 "../code/test/block.c" "true"
 echo OK
