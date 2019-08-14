@@ -292,28 +292,54 @@ Node *for_stmt_statement() {
 Node *for_loop_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_FOR_LOOP;
-  node->lhs = expr();
-  expect(")");
+
+  // 後処理がない場合
+  if(consume(")")) {
+    node->lhs = NULL;
+  } else {
+    node->lhs = expr();
+    expect(")");
+  }
+
   node->rhs = for_stmt_statement();
   return node;
 }
 
 Node *for_continue_statement() {
+
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_FOR_CONTINUE;
-  node->lhs = expr();
-  expect(";");
+
+  // 継続条件がない場合
+  if(consume(";")) {
+    node->lhs = NULL;
+  } else {
+    node->lhs = expr();
+    expect(";");
+  }
+
   node->rhs = for_loop_statement();
   return node;
 }
 
-// for(expr; expr; expr;) stmt()
+// 現状、以下の構文をサポートしている
+// for(expr; expr; expr) stmt()
+// for(; expr; expr) stmt()
+// for(;; expr) stmt()
+// for(;;) stmt()
 Node *for_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_FOR;
   expect("(");
-  node->lhs = expr();
-  expect(";");
+
+  // 初期化式がない場合
+  if(consume(";")) {
+    node->lhs = NULL;
+  } else {
+    node->lhs = expr();
+    expect(";");
+  }
+
   node->rhs = for_continue_statement();
   return node;
 }
