@@ -117,6 +117,19 @@ void gen(Node *node) {
       printf(".LifEnd%d:\n", endLabelId);
       return;
     }
+    case ND_WHILE: {
+      int whileBeginLabelId = labelCounter();
+      int whileEndLabelId = labelCounter();
+      printf(".LWhileBegin%d:\n", whileBeginLabelId);
+      gen(node->lhs);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+      printf("  je .LWhileEnd%d\n", whileEndLabelId);
+      gen(node->rhs);
+      printf("  jmp .LWhileBegin%d\n", whileBeginLabelId);
+      printf(".LWhileEnd%d:\n", whileEndLabelId);
+      return;
+    }
   }
 
   gen(node->lhs);

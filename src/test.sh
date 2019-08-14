@@ -50,4 +50,6 @@ echo "if文"
 try 3 "../code/test/if.c" "true"
 echo "ifelse文"
 try 8 "../code/test/ifelse.c" "true"
+echo "while文"
+try 3 "../code/test/while.c" "true"
 echo OK

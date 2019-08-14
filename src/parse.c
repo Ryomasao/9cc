@@ -230,13 +230,14 @@ Node *if_else_statement() {
   node->rhs = stmt();
 }
 
-Node *if_statement(Node *node) {
+Node *if_statement() {
   // if文はまだ1statementしかかけない仕様
   // if(expr) statement;
   // else statement;
   //
   // ネストもできないよ
-  node = calloc(1, sizeof(Node));
+
+  Node *node = calloc(1, sizeof(Node));
   // ifのNode種別は、elseがあるかどうかで設定値がかわるので、とっておく
   Node *ifNode = node;
 
@@ -271,9 +272,20 @@ Node *if_statement(Node *node) {
   }
 }
 
+Node *while_statement() {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_WHILE;
+  expect("(");
+  node->lhs = expr();
+  expect(")");
+  node->rhs = stmt();
+  return node;
+}
+
 // statementは以下のいずれかを想定している
 // return;
 // if(expr) statement;
+// while(expr) statement;
 // expr;
 Node *stmt() {
     Node *node;
@@ -283,7 +295,10 @@ Node *stmt() {
     node->kind = ND_RETURN;
     node->lhs = expr();
   } else if(consume("if")) {
-    node = if_statement(node);
+    node = if_statement();
+    return node;
+  } else if(consume("while")) {
+    node = while_statement();
     return node;
   } else {
     node = expr();

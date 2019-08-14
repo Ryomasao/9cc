@@ -53,8 +53,9 @@ typedef enum {
   ND_LVAR,          // ローカル変数
   ND_RETURN,        // return
   ND_IF,            // IF
-  ND_IF_ELSE,       // ELSE
+  ND_IF_ELSE,       // IFでELSEがあるパターン
   ND_IF_ELSE_STMT,  // if文のthenとstmtとelseのstmtをもつ
+  ND_WHILE,         // while
 } NodeKind;
 
 // Node型の中にNodeがある

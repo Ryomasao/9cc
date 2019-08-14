@@ -148,6 +148,13 @@ void tokenize(char input[][MAX_COLUMN] ) {
           continue;
       }
 
+      if(strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
+          cur = new_token(TK_RESERVED, cur, p);
+          cur->len = 5;
+          p = p + 5;
+          continue;
+      }
+
       // 微妙だけど、予約語を変数名より優先して判定するようにする
       // 変数はaからzで始まっているものとする
       if('a' <= *p && *p <='z') {
