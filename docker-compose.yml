@@ -4,3 +4,9 @@ services:
     build: .
     volumes:
       - ./:/data
+    cap_add:
+      # gdb実行時に右記のエラーがでるため: ptrace: Operation not permitted
+      - SYS_PTRACE
+    security_opt:
+      # gdb実行時に右記のエラーがでるため: Error disabling address space randomization
+      - seccomp:unconfined
