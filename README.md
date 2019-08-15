@@ -359,6 +359,62 @@ a  +
 変数割り当てのアセンブリを、`lvar.s`に書いた
 
 
+##### stack
+スタックメモ
+スタックは上に伸びる
+
+1. mov rbp rsp
+0001 
+0002
+0003
+0004
+0005  ← RBP RSP
+
+2. sub rsp, 1 = push
+0001 
+0002
+0003
+0004  ← RSP
+0005  ← RBP
+
+3. sub rsp, 2 変数はRBPからの相対でセットできる
+0001 
+0002
+0003  ← RSP
+0004  
+0005  ← RBP
+
+
+##### gdbメモ
+
+https://sites.google.com/site/isutbe2018/zi-liaoasm/gdb
+http://higepon.hatenablog.com/entry/20091026/1256561135
+
+```
+# gdb ./lvar
+(gdb) b main   # brackpointをmainにセット
+(gdb) run      # 実行
+(gdb) s        # step実行
+(gdb) i r rax  # レジスタraxの値を参照
+(gdb) quit     # 終了
+```
+
+
+rspが16の倍数になるように調整する途中の例
+```
+.intel_syntax noprefix
+.global main
+
+main:
+  mov rax, rsp
+  mov rdi, 16
+  cqo
+  div rdi
+  mov rax, rdx
+  # raxの値が0以外であれば、 sub rsp, 8 or pushとか
+  ret
+```
+
 
 
 

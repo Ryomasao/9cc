@@ -7,7 +7,7 @@ echo "exec $target"
 gcc -o "$target" "$target".s 
 ./$target
 else
-gcc -o lvar lvar.s
+gcc -g -o lvar lvar.s
 ./lvar
 fi
 
