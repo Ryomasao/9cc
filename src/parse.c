@@ -134,6 +134,18 @@ Lvar *create_or_set_lvars(Token *tok) {
   return lvar;
 }
 
+void parse_argv(int argv[3]) {
+  int i = 0;
+
+  // TODO: foo(1,)とか、foo(,,)でも問題なく動いちゃう
+  while(!consume(")")) {
+    if(token->kind == TK_NUM) {
+      argv[i] = token->val;
+      i++;
+    }
+    token = token->next;
+  }
+}
 
 // term = num | ident ( "(" ")" )? | "(" expr ")"
 Node *term() {
@@ -151,9 +163,8 @@ Node *term() {
 
     // ひとつ先読みして(があれば関数とみなす
     if(is_supposed_token("(", tok->next)) {
-      // TODO: 引数は渡せるようにする
       expect("(");
-      expect(")");
+      parse_argv(node->argv);
       node->kind = ND_FUNC;
       // callocは終端文字文を意識して+1してるけど、意味があるのかしら
       node->funcName = calloc(1, tok->len + 1);
