@@ -3,15 +3,29 @@ try() {
   expected="$1"
   input="$2"
   mode="$3"
+  func="$4"
 
-  # 引数の数$# が3なら、mode付きで実行
-  if [ $# -eq 3 ]; then
+  # modeがある場合、ファイルから読み込めるようにオプションを指定
+  if [ -n "$3" ]; then
     ./9cc "$input" "$mode" > tmp.s
   else
     ./9cc "$input" > tmp.s
   fi
 
-  gcc -o tmp tmp.s
+  # funcがある場合、mock用のfuncをリンクする
+  if [ -n "$4" ]; then
+    # make -f でsubdirのMakefileを指定したかったんだけど
+    # カレントディレクトリと衝突？する
+    # なので、ディレクトリを移動
+    cd ./lib/mock
+    make
+    cd ../../
+    # リンク
+    gcc -o tmp tmp.s ./lib/mock/mock.o
+  else
+    gcc -o tmp tmp.s
+  fi
+
   ./tmp
   actual="$?"
   echo $actual
@@ -56,4 +70,8 @@ echo "for文"
 try 3 "../code/test/for.c" "true"
 echo "block文"
 try 4 "../code/test/block.c" "true"
+echo "function文"
+# functionのreturn機能を実装できていない
+# Cの関数をcallすると173が返ってきたので期待値にセット
+try 173 "../code/test/func.c" "true" "true"
 echo OK

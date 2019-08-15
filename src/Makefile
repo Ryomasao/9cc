@@ -10,7 +10,7 @@
 # ひとまず直接書く
 # /lib/README.mdを参照
 LIBHEADER=./lib/stack
-LIBOBJECT=./lib/stack/stack.o
+LIBOBJECT=./lib/stack/stack.o 
 
 CFLAGS=-std=c11 -g -static -I$(LIBHEADER)
 SRCS=$(wildcard *.c)

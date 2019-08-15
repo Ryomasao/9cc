@@ -81,6 +81,15 @@ Token *consume_ident(){
   return NULL;
 }
 
+// 次のトークンがident()のときはidentのトークン(のアドレス)を返し、ident()の次までトークンを進めておく
+// それ以外の場合は、NULLを返す
+Token *consume_function(){
+  Token *token = consume_ident();
+  if(!token) return NULL;
+  if(!consume("(")) return NULL;
+  return token;
+}
+
 // グローバル変数のlocalsは変数名を格納しているリスト
 // tokenに格納されている変数名がすでに存在しているかを確認する
 // 存在していれば変数名のLvarを、なければNULLを返す
@@ -107,7 +116,26 @@ bool at_eof() {
   return false;
 }
 
+Lvar *create_or_set_lvars(Token *tok) {
+  // Tokenの変数が新しいものか、既存のものかを調べる
+  Lvar *lvar = find_lvar(tok);
 
+  if(!lvar) {
+    // 新規の場合、Lvarをつくって、リストをつなげてく
+    lvar = calloc(1, sizeof(Lvar));
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    Lvar *prevVar = getLastLocalsVar();
+    // offsetは8バイト？ずつ足してく
+    lvar->offset = prevVar->offset + 8;
+    prevVar->next = lvar;
+  }
+
+  return lvar;
+}
+
+
+// term = num | ident ( "(" ")" )? | "(" expr ")"
 Node *term() {
   if(consume("(")) {
     Node *node = expr();
@@ -116,25 +144,25 @@ Node *term() {
   }
 
   Token *tok = consume_ident();
-  // Tokenが変数の場合
+
+  // Tokenが変数、もしくは関数の可能性がある場合
   if(tok) {
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
 
-    // Tokenの変数が新しいものか、既存のものかを調べる
-    Lvar *lvar = find_lvar(tok);
-    if(lvar) {
-      node->offset = lvar->offset;
+    // ひとつ先読みして(があれば関数とみなす
+    if(is_supposed_token("(", tok->next)) {
+      // TODO: 引数は渡せるようにする
+      expect("(");
+      expect(")");
+      node->kind = ND_FUNC;
+      // callocは終端文字文を意識して+1してるけど、意味があるのかしら
+      node->funcName = calloc(1, tok->len + 1);
+      strncpy(node->funcName, tok->str, tok->len);
     } else {
-      // 新規の場合、Lvarをつくって、リストをつなげてく
-      lvar = calloc(1, sizeof(Lvar));
-      lvar->name = tok->str;
-      lvar->len = tok->len;
-      Lvar *prevVar = getLastLocalsVar();
-      // offsetは8バイト？ずつ足してく
-      lvar->offset = prevVar->offset + 8;
+      // 変数
+      node->kind = ND_LVAR;
+      Lvar *lvar = create_or_set_lvars(tok);
       node->offset = lvar->offset;
-      prevVar->next = lvar;
     }
 
     return node;

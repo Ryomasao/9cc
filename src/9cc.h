@@ -61,18 +61,20 @@ typedef enum {
   ND_FOR_LOOP,      // ND_FORの更新
   ND_FOR_STMT,      // ND_FORのSTMT
   ND_BLOCK,         // {}のブロック構文
+  ND_FUNC,          // 関数
 } NodeKind;
 
 // Node型の中にNodeがある
 // typef struct Node　としておくと、lhsとかでNode型がわからないことによるwarningが消えた
 typedef struct Node
 {
-  NodeKind kind;      // 演算子かND_NUM
-  struct Node *lhs;   // 左辺
-  struct Node *rhs;   // 右辺
-  int val;            // kindがND_NUMの場合のみ使う
-  int offset;         // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
+  NodeKind kind;             // 演算子かND_NUM
+  struct Node *lhs;          // 左辺
+  struct Node *rhs;          // 右辺
+  int val;                   // kindがND_NUMの場合のみ使う
+  int offset;                // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
   struct Node **vector;      // kindがND_BLOCKの場合、stmtのnode保持する配列へのポインタ
+  char* funcName;            // kindがND_FUNCの場合の関数名
 } Node;
 
 
