@@ -275,14 +275,10 @@ Node *if_else_statement() {
   node->lhs = stmt();
   expect("else");
   node->rhs = stmt();
+  return node;
 }
 
 Node *if_statement() {
-  // if文はまだ1statementしかかけない仕様
-  // if(expr) statement;
-  // else statement;
-  //
-  // ネストもできないよ
 
   Node *node = calloc(1, sizeof(Node));
   // ifのNode種別は、elseがあるかどうかで設定値がかわるので、とっておく
@@ -315,8 +311,8 @@ Node *if_statement() {
     // 進めたtokenを戻す
     token = currentToken;
     node->rhs = stmt();
-    return node;
   }
+  return node;
 }
 
 Node *while_statement() {

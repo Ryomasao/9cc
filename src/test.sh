@@ -63,4 +63,6 @@ echo "function文"
 try 11 "../code/test/11_func.c" "true" "true"
 echo "function定義"
 try 6 "../code/test/12_func_dif.c" "true"
+echo "Fibonacci"
+try 5 "../code/test/13_fibonacci.c" "true"
 echo OK
