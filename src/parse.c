@@ -136,16 +136,22 @@ Lvar *create_or_set_lvars(Token *tok) {
 
 // 関数の()の中をパースする
 // 呼び出し後は、)←のトークンも読み進めているので、呼び出し側で)を読み飛ばす必要はないので注意
-void parse_argv(int argv[3]) {
+void parse_argv(Node *argv[3]) {
   int i = 0;
 
-  // TODO: foo(1,)とか、foo(,,)でも問題なく動いちゃう
-  while(!consume(")")) {
-    if(token->kind == TK_NUM) {
-      argv[i] = token->val;
-      i++;
+  while(true) {
+    if(consume(")")) {
+      break;
     }
-    token = token->next;
+
+    argv[i] = expr();
+    i++;
+
+    // 最後が,じゃなかったら引数はもうないとみなす
+    if(!consume(",")) {
+      expect(")");
+      break;
+    }
   }
 }
 

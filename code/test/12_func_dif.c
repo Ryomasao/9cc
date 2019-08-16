@@ -1,8 +1,8 @@
 main() {
-  a = bar();
-  return a;
+  fuga = 1;
+  return bar(fuga, 2, 3);
 }
 
-bar() {
-  return 12;
+bar(a, b, c) {
+  return a + b + c;
 }

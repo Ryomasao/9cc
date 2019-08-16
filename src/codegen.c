@@ -1,5 +1,16 @@
 #include "9cc.h"
 
+
+// 関数に引数を渡す際の第1引数から第6までは、どのレジスタにセットするかはきまってるので、配列で保持しておく。
+char mapFuncArgvToRegister[6][4] = {
+  "rdi",
+  "rsi",
+  "rdx",
+  "rcx",
+  "r8",
+  "r9",
+};
+
 int LabelId = 0;
 char labelStack [9][100];
 
@@ -65,7 +76,6 @@ void gen(Node *node) {
       printf("  pop rdi\n");
       printf("  pop rax\n");
       printf("  mov [rax], rdi\n");
-      printf("  push rdi\n");
       return;
     case ND_RETURN:
       gen(node->lhs);
@@ -222,11 +232,12 @@ void gen(Node *node) {
       printf("  mov r11, 1\n");
 
       printf(".Lrsp%d:\n", rspLabelId);
-      // 第一引数はrdiレジスタ、、、のように決まってるみたい
-      // ひとまず、固定でセット
-      printf("  mov rdi, %d\n", node->argv[0]);
-      printf("  mov rsi, %d\n", node->argv[1]);
-      printf("  mov rdx, %d\n", node->argv[2]);
+
+      for(int i = 0; node->argv[i]; i++) {
+        gen(node->argv[i]);
+        printf("  pop rax\n");
+        printf("  mov %s, rax\n", mapFuncArgvToRegister[i]);
+      }
 
       printf("  call %s\n", node->funcName);
 
@@ -252,6 +263,12 @@ void gen(Node *node) {
       printf("  mov rbp, rsp\n");
       // 変数26個分の領域を確保する
       printf("  sub rsp, 208\n");
+
+      for(int i = 0; node->argv[i]; i++) {
+        gen_lval(node->argv[i]);
+        printf("  pop rax\n");
+        printf("  mov [rax], %s\n", mapFuncArgvToRegister[i]);
+      }
 
       return;
     }

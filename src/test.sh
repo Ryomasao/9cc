@@ -62,5 +62,5 @@ try 4 "../code/test/10_block.c" "true"
 echo "function文"
 try 11 "../code/test/11_func.c" "true" "true"
 echo "function定義"
-try 12 "../code/test/12_func_dif.c" "true"
+try 6 "../code/test/12_func_dif.c" "true"
 echo OK

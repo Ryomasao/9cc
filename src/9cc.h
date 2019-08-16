@@ -77,7 +77,7 @@ typedef struct Node
   int offset;                // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
   struct Node **vector;      // kindがND_BLOCKの場合、stmtのnode保持する配列へのポインタ
   char* funcName;            // kindがND_FUNCの場合の関数名
-  int argv[3];               // kindがND_FUNCの場合の引数。まだ、int型で3個までしかサポートしてない。:
+  struct Node *argv[3];      // kindがND_FUNCの場合の引数
 } Node;
 
 
