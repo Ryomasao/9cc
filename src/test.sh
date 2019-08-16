@@ -60,7 +60,7 @@ try 3 "../code/test/09_for.c" "true"
 echo "block文"
 try 4 "../code/test/10_block.c" "true"
 echo "function文"
-## functionのreturn機能を実装できていない
-## Cの関数をcallすると173が返ってきたので期待値にセット
-try 175 "../code/test/11_func.c" "true" "true"
+try 11 "../code/test/11_func.c" "true" "true"
+echo "function定義"
+try 12 "../code/test/12_func_dif.c" "true"
 echo OK
