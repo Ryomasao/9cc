@@ -213,25 +213,21 @@ void gen(Node *node) {
     }
     // 関数呼び出し foo()
     case ND_FUNC: {
-      //int argc = sizeof(node->argv) / sizeof(int);
-      //for(int i = 0; i < argc; i++) {
-      //  printf("  push %d\n", node->argv[i]);
-      //}
 
       // 関数呼び出しの際はRSPの値が16の倍数になっていることを前提としている関数がある
       // なので、RSPの値が16の倍数ではない場合、調整する
-      int rspLabelId = labelCounter();
-      printf("  mov rax, rsp\n");
-      printf("  mov r10, 16\n");
-      printf("  cqo\n");
-      printf("  div r10\n");
-      printf("  cmp rdx, 0\n");
-      printf("  je .Lrsp%d\n", rspLabelId);
-      printf("  sub rsp, 8\n");
-      // 関数呼び出しから戻ったときに、rspが調整されているかどうかを判別するために使う
-      printf("  mov r11, 1\n");
+      //int rspLabelId = labelCounter();
+      //printf("  mov rax, rsp\n");
+      //printf("  mov r10, 16\n");
+      //printf("  cqo\n");
+      //printf("  div r10\n");
+      //printf("  cmp rdx, 0\n");
+      //printf("  je .Lrsp%d\n", rspLabelId);
+      //printf("  sub rsp, 8\n");
+      //// 関数呼び出しから戻ったときに、rspが調整されているかどうかを判別するために使う
+      //printf("  mov r11, 1\n");
 
-      printf(".Lrsp%d:\n", rspLabelId);
+      //printf(".Lrsp%d:\n", rspLabelId);
 
       for(int i = 0; node->argv[i]; i++) {
         gen(node->argv[i]);
@@ -242,12 +238,12 @@ void gen(Node *node) {
       printf("  call %s\n", node->funcName);
 
       // rspが調整されている場合、元に戻す
-      int rspRestoreLabelId = labelCounter();
-      printf("  cmp r11, 0\n");
-      printf("  je .LrspRestore%d\n", rspRestoreLabelId);
-      printf("  mov r11, 0\n");
-      printf("  add rsp, 8\n");
-      printf(".LrspRestore%d:\n", rspRestoreLabelId);
+      //int rspRestoreLabelId = labelCounter();
+      //printf("  cmp r11, 0\n");
+      //printf("  je .LrspRestore%d\n", rspRestoreLabelId);
+      //printf("  mov r11, 0\n");
+      //printf("  add rsp, 8\n");
+      //printf(".LrspRestore%d:\n", rspRestoreLabelId);
 
       // 関数を呼び出した結果、raxに関数の結果が残っている
       // それをスタックに残す
