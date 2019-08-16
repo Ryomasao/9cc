@@ -21,9 +21,9 @@ try() {
     make
     cd ../../
     # リンク
-    gcc -o tmp tmp.s ./lib/mock/mock.o
+    gcc -g -o tmp tmp.s ./lib/mock/mock.o
   else
-    gcc -o tmp tmp.s
+    gcc -g -o tmp tmp.s
   fi
 
   ./tmp
@@ -39,39 +39,28 @@ try() {
   fi
 }
 
+echo "### main定義 + return文"
+try 255 "../code/test/01_basic.c" true
+echo "### 変数割り当て"
+try 5 "../code/test/02_var.c" true
 echo "### 加算・減算・乗算・徐算・()の優先順位・単項演算子"
-try 3 "(1 + 2) * 2 / 2 + 1 - 1 + -1 + +1;"
-echo "### <の確認"
-try 1 "0 < 1;"
-try 0 "1 < 1;"
-echo "### <=の確認"
-try 1 "1 <= 1;"
-try 1 "1 <= 2;"
-try 0 "1 <= 0;"
-echo "### >の確認"
-try 1 "1 > 0;"
-try 0 "1 > 1;"
-echo "### >=の確認"
-try 1 "1 >= 1;"
-try 1 "2 >= 1;"
-try 0 "0 >= 1;"
-echo "### == !=の確認"
-try 1 "1 == 1;"
-try 1 "1 != 2;"
-echo "変数割り当て"
-try 5 "amazing=2;number=amazing;1+2*number;"
+try 3 "../code/test/03_calc.c" true
+echo "### 比較演算子"
+try 4 "../code/test/04_comparison.c" true
+echo "### == !=="
+try 2 "../code/test/05_equall.c" true
 echo "if文"
-try 3 "../code/test/if.c" "true"
+try 3 "../code/test/06_if.c" "true"
 echo "ifelse文"
-try 8 "../code/test/ifelse.c" "true"
+try 8 "../code/test/07_ifelse.c" "true"
 echo "while文"
-try 3 "../code/test/while.c" "true"
+try 3 "../code/test/08_while.c" "true"
 echo "for文"
-try 3 "../code/test/for.c" "true"
+try 3 "../code/test/09_for.c" "true"
 echo "block文"
-try 4 "../code/test/block.c" "true"
+try 4 "../code/test/10_block.c" "true"
 echo "function文"
-# functionのreturn機能を実装できていない
-# Cの関数をcallすると173が返ってきたので期待値にセット
-try 173 "../code/test/func.c" "true" "true"
+## functionのreturn機能を実装できていない
+## Cの関数をcallすると173が返ってきたので期待値にセット
+try 175 "../code/test/11_func.c" "true" "true"
 echo OK

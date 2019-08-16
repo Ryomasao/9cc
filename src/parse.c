@@ -11,7 +11,6 @@ void error(char *fmt, ...) {
   exit(1);
 }
 
-
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kind;
@@ -134,6 +133,9 @@ Lvar *create_or_set_lvars(Token *tok) {
   return lvar;
 }
 
+
+// 関数の()の中をパースする
+// 呼び出し後は、)←のトークンも読み進めているので、呼び出し側で)を読み飛ばす必要はないので注意
 void parse_argv(int argv[3]) {
   int i = 0;
 
@@ -408,6 +410,30 @@ Node *block_statement() {
   return node;
 }
 
+
+Node *expect_func_difinition() {
+  Token *tok = consume_ident();
+
+  if(!tok) error("トップレベルは関数しか書けないよ");
+
+  expect("(");
+
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_FUNC_DIF;
+  node->funcName = calloc(1, tok->len + 1);
+  strncpy(node->funcName, tok->str, tok->len);
+
+  // 引数をパース )も読み飛ばしてる
+  parse_argv(node->argv);
+
+  expect("{");
+
+  return node;
+}
+
+// 現在パースしているトークンがトップレベルがどうかを判断する
+bool isTopLebel = true;
+
 // statementは以下のいずれかを想定している
 // return;
 // if(expr) statement;
@@ -415,7 +441,13 @@ Node *block_statement() {
 // for(expr; expr; expr;) statement;
 // expr;
 Node *stmt() {
-    Node *node;
+  Node *node;
+
+  if(isTopLebel) {
+    node = expect_func_difinition();
+    isTopLebel = false;
+    return node;
+  }
 
   if(consume("return")) {
     node = calloc(1, sizeof(Node));
@@ -433,6 +465,12 @@ Node *stmt() {
     // ブロック構文
   } else if(consume("{")) {
     node = block_statement();
+    return node;
+    // 関数の終了を表すブロック構文
+  } else if(consume("}")) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_FUNC_DIF_END;
+    isTopLebel = true;
     return node;
   } else {
     node = expr();

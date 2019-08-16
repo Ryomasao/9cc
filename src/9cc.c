@@ -51,28 +51,11 @@ int main(int argc, char **argv) {
   // アセンブリの前半部分を出力
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
-  printf("main:\n");
-
-  // プロローグ処理
-  printf("  push rbp\n");
-  printf("  mov rbp, rsp\n");
-  // 変数26個分の領域を確保する
-  // これやらないとどうなるんだっけ、、、、
-  // rbpからの相対位置で変数を管理してるから必要な気がしてきた
-  printf("  sub rsp, 208\n");
 
   for(int i = 0; code[i]; i++) {
+    // code[]はstmt()の結果のnodeを格納してる
     gen(code[i]);
-    // スタックトップに式全体の値が残っているはずなので
-    // それをRAXにロードして関数からの返り値とする
-    printf("  pop rax\n");
   }
-
-
-  // エピローグ
-  printf("  mov rsp, rbp\n");
-  printf("  pop rbp\n");
-  printf("  ret\n");
 
   return 1;
 }

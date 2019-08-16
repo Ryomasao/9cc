@@ -61,7 +61,9 @@ typedef enum {
   ND_FOR_LOOP,      // ND_FORの更新
   ND_FOR_STMT,      // ND_FORのSTMT
   ND_BLOCK,         // {}のブロック構文
-  ND_FUNC,          // 関数
+  ND_FUNC,          // 関数call
+  ND_FUNC_DIF,      // 関数定義
+  ND_FUNC_DIF_END,  // 関数の終了 } が格納
 } NodeKind;
 
 // Node型の中にNodeがある
