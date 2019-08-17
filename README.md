@@ -1,15 +1,19 @@
 
-これをちょっとやってみたい！リポジトリ。
+# Cコンパイラ作成入門をやってみた
 
 https://www.sigbus.info/compilerbook
 
 
-## 準備
+
+
+
+## 準備
 Linux環境でやったほがいいとのことなのでdockerを使う。
 dockerを久しぶりさわっていろいろ忘れてた。
 
 ### alpineを使う
-Cをコンパイルするだけであれば、docker直接でよかったかな。でもdocker-composeが便利な気がするので、dokcer-composeに。
+Cをコンパイルするだけであれば、docker直接でよかったかも。
+でもdocker-composeが便利な気がするので、dokcer-composeを使う。
 `docker-compose.yml`を適当に作った。
 
 
@@ -20,14 +24,20 @@ Cをコンパイルするだけであれば、docker直接でよかったかな�
 $ docker-compose run  --rm [サービス名] ash
 ```
 
+以降は、全部メモ。
+
+
 `--rm`オプションをつけると、コンテナ停止後に削除される。
 
-#### コンテナ削除
+
+#### 参考:コンテナ削除
+`--rm`をつけ忘れて、コンテナを削除する場合のメモ
 
 ```
 $ docker rm  [コンテナID]
 ```
 
+不要なものを全部削除
 ```
 $ docker system prune
 ```
@@ -36,25 +46,17 @@ $ docker system prune
 ### Dockerfile作成
 ```
 FROM alpine:3.9.4
-RUN apk --update --no-cache add gcc make binutils libc-dev bash
+RUN apk --update --no-cache add gcc make binutils libc-dev bash gdb
 ```
-
-それぞれ何かがあんまわかってない。
 
 説明では、`libc-dev`ではなくって、`libc6-dev`
-Alpineで見つからなかったので。
+Alpineで見つからなかったので`libc-dev`にする。
 
-あとでユニットテストを`bash`で書くので、これもいれとく。
+あとでユニットテストを`bash`で書くのと、`gdb`でレジスタの中味とかを見たいので、いれとく。  
 
 
-なんとなく、上で書いてみて、お試しににビルド。
-```sh
-$ docker build .
-```
+次に、dokcer-compose.ymlを作成する。
 
-次に、dokcer-composeで使用するようにする。
-
-`build`で`Dockerfile`の場所を指定すればよかったんだよね
 ```
 version: '3'
 services:
@@ -277,9 +279,11 @@ mul = num("*" num | "/" num)*
 ```
 1 + 2 * 3の場合、以下に構文木になる
 
+```
    +
 1    *
     2  3
+```
 
 #### 07-括弧による優先順位  
 強い
@@ -293,9 +297,11 @@ term = num | "(" expr ")"
 
 (1 + 2) * 3の場合、以下の構文木になる
 
+```
      *
   +    3
 1  2
+```
 
 06の掛け算のときと構文木がかわることに気づく。
 
@@ -328,6 +334,8 @@ unary = ("+" | "-") ? term
 term = num | "(" expr ")"
 ```
 
+これ以降は、コードの方に書いてた。
+
 ##### すごいうろ覚えな構造体
 構造体をコピーしたい場合、単純にこうしてた
 ```
@@ -357,32 +365,6 @@ a  +
 ```
 
 変数割り当てのアセンブリを、`lvar.s`に書いた
-
-
-##### stack
-スタックメモ
-スタックは上に伸びる
-
-1. mov rbp rsp
-0001 
-0002
-0003
-0004
-0005  ← RBP RSP
-
-2. sub rsp, 1 = push
-0001 
-0002
-0003
-0004  ← RSP
-0005  ← RBP
-
-3. sub rsp, 2 変数はRBPからの相対でセットできる
-0001 
-0002
-0003  ← RSP
-0004  
-0005  ← RBP
 
 
 ##### gdbメモ
