@@ -1,9 +1,8 @@
-main() {
-  return fibonacci(5);
-}
-
-fibonacci(n) {
-  if(n == 1) return 1;
-  if(n == 2) return 1;
-  return fibonacci(n - 1) + fibonacci(n - 2);
+main()
+{
+  a = 10;
+  b = 11;
+  c = 12;
+  d = &b - 8;
+  return *d;
 }

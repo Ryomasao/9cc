@@ -231,6 +231,12 @@ Node *unary()
   if (consume("-"))
     return new_node(ND_SUB, new_node_num(0), term());
 
+  if (consume("&"))
+    return new_node(ND_ADDR, term(), NULL);
+
+  if (consume("*"))
+    return new_node(ND_DEREF, term(), NULL);
+
   return term();
 }
 

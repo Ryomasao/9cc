@@ -65,4 +65,6 @@ echo "function定義"
 try 6 "../code/test/12_func_dif.c" "true"
 echo "Fibonacci"
 try 5 "../code/test/13_fibonacci.c" "true"
+echo "&と*"
+try 13 "../code/test/14_address.c" "true"
 echo OK

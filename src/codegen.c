@@ -229,6 +229,7 @@ void gen(Node *node)
   case ND_FUNC:
   {
 
+    // TODO: ↓未実装
     // 関数呼び出しの際はRSPの値が16の倍数になっていることを前提としている関数がある
     // なので、RSPの値が16の倍数ではない場合、調整する
     //int rspLabelId = labelCounter();
@@ -301,6 +302,15 @@ void gen(Node *node)
 
     return;
   }
+  case ND_ADDR:
+    gen_lval(node->lhs);
+    return;
+  case ND_DEREF:
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
+    return;
   }
 
   gen(node->lhs);
