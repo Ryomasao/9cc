@@ -1,36 +1,32 @@
-
-# Cコンパイラ作成入門をやってみた
+# C コンパイラ作成入門をやってみた
 
 https://www.sigbus.info/compilerbook
 
-
-
-
-
 ## 準備
-Linux環境でやったほがいいとのことなのでdockerを使う。
-dockerを久しぶりさわっていろいろ忘れてた。
 
-### alpineを使う
-Cをコンパイルするだけであれば、docker直接でよかったかも。
-でもdocker-composeが便利な気がするので、dokcer-composeを使う。
+Linux 環境でやったほがいいとのことなので docker を使う。
+docker を久しぶりさわっていろいろ忘れてた。
+
+### alpine を使う
+
+C をコンパイルするだけであれば、docker 直接でよかったかも。
+でも docker-compose が便利な気がするので、dokcer-compose を使う。
 `docker-compose.yml`を適当に作った。
-
 
 #### コンテナ起動
 
-とりあえず、alpineでashを実行するといい。
+とりあえず、alpine で ash を実行するといい。
+
 ```sh
 $ docker-compose run  --rm [サービス名] ash
 ```
 
 以降は、全部メモ。
 
-
 `--rm`オプションをつけると、コンテナ停止後に削除される。
 
-
 #### 参考:コンテナ削除
+
 `--rm`をつけ忘れて、コンテナを削除する場合のメモ
 
 ```
@@ -38,24 +34,24 @@ $ docker rm  [コンテナID]
 ```
 
 不要なものを全部削除
+
 ```
 $ docker system prune
 ```
 
+### Dockerfile 作成
 
-### Dockerfile作成
 ```
 FROM alpine:3.9.4
 RUN apk --update --no-cache add gcc make binutils libc-dev bash gdb
 ```
 
 説明では、`libc-dev`ではなくって、`libc6-dev`
-Alpineで見つからなかったので`libc-dev`にする。
+Alpine で見つからなかったので`libc-dev`にする。
 
-あとでユニットテストを`bash`で書くのと、`gdb`でレジスタの中味とかを見たいので、いれとく。  
+あとでユニットテストを`bash`で書くのと、`gdb`でレジスタの中味とかを見たいので、いれとく。
 
-
-次に、dokcer-compose.ymlを作成する。
+次に、dokcer-compose.yml を作成する。
 
 ```
 version: '3'
@@ -71,6 +67,7 @@ $ docker-compose run  --rm main ash
 ```
 
 #### 01-first-compile
+
 整数渡すことだけできるコンパイラを作成
 
 ```c
@@ -98,10 +95,12 @@ $ docker-compose run  --rm main ash
   // echo $?
 ```
 
-#### 02-testと02-test-make
+#### 02-test と 02-test-make
+
 テスト用シェルを作成する
 
 <b>思い出す</b>
+
 ```sh
 # 変数を適当に宣言して、引数をセット
 varibable=$1
@@ -113,26 +112,28 @@ echo "テンプレートリテラル$variable的な？"
 echo OK
 ```
 
-
 なつかしの`make`
 
 `Makefile`を作成して、これを書くだけで
+
 ```
 9cc: 9cc.c
 ```
 
-※ 最初 9cc: main.c としてたんだけどコンパイルの2回目以降に`Nothing to be done`ってなっちゃう。
+※ 最初 9cc: main.c としてたんだけどコンパイルの 2 回目以降に`Nothing to be done`ってなっちゃう。
 なので、ファイル名を変更した。オブジェクトの名前とソースって合わせる必要があるのかしら。
 
 これと同じ意味になる
+
 ```sh
 $ gcc -o 9cc 9cc.c
 ```
 
 #### 03-basic-calc
+
 簡単な計算を行えるようになった！
 
-`strtol`がややこしい、というよりCのポインタまわりはややこしい
+`strtol`がややこしい、というより C のポインタまわりはややこしい
 
 ```c
   char *p = argv[1];
@@ -152,8 +153,8 @@ $ gcc -o 9cc 9cc.c
 
 #### 03-token
 
-
 <b>構造体をおもいだす</b>
+
 ```c
 
 // 基本は構造体タグを定義して
@@ -172,7 +173,7 @@ int main() {
 typedef struct {
   char name[10];
   int age;
-} member 
+} member
 
 int main() {
   member ayane;
@@ -181,15 +182,16 @@ int main() {
 
 ```
 
-### そういえば while(*p) って
+### そういえば while(\*p) って
 
-文字列走査の`while(*p)`ってpのどの状態をfalsyとして扱ってるんだろ。
+文字列走査の`while(*p)`って p のどの状態を falsy として扱ってるんだろ。
 https://www.grapecity.com/developer/support/powernews/column/clang/028/page02.htm
-こちらに終端にNULL(\0)が置かれるって書いてあった。
+こちらに終端に NULL(\0)が置かれるって書いてあった。
 
 試しにのぞいてみる。
 
-16進数で参照してみると、こんな感じに
+16 進数で参照してみると、こんな感じに
+
 ```c
 char *p = argv[1];
 printf("char: %x\n", p[0]);
@@ -204,9 +206,10 @@ char: 62
 char: 0
 ```
 
+### token の内容
 
-### tokenの内容  
 こんな感じになってる
+
 ```c
   // ex)123+45　
   // 123 token[0]
@@ -217,6 +220,7 @@ char: 0
 ### トークナイザ
 
 #### 05-足し算・引き算
+
 シンプルな構文木で考える。
 
 ```
@@ -224,6 +228,7 @@ expr = num ("+" num | "-" num)*
 ```
 
 これをコードで構文木にしようとするとこんな感じにかける
+
 ```c
 Node *expr() {
   // numから始まるので、まずはnumをとってくる
@@ -239,7 +244,7 @@ Node *expr() {
   //    +    4
   //   +  3
   //  1 2
-  // 
+  //
   // 1・2・+すべてnode
   //    +  ←ty
   //  1   2
@@ -261,23 +266,24 @@ Node *num() {
   // posはグローバル変数、初期値は当然0
   //いろんな関数で値を更新するから半端なくわかりにくい
   // 数字であれば、数字のノードを返却
-  if(tokens[pos].ty == TK_NUM) 
+  if(tokens[pos].ty == TK_NUM)
     // 値を設定してposインクリメント。これもわかりにくい
     return new_node_num(tokens[pos++].val);
-  
+
   error_at(tokens[pos].input, "数値でも()でもないトークンです");
 }
 ```
 
+#### 06-掛け算・割り算
 
-#### 06-掛け算・割り算  
 このシンプルさは神の所業
 
 ```
 expr = mul ("+" mul | "-" mul)*
 mul = num("*" num | "/" num)*
 ```
-1 + 2 * 3の場合、以下に構文木になる
+
+1 + 2 \* 3 の場合、以下に構文木になる
 
 ```
    +
@@ -285,7 +291,8 @@ mul = num("*" num | "/" num)*
     2  3
 ```
 
-#### 07-括弧による優先順位  
+#### 07-括弧による優先順位
+
 強い
 
 ```
@@ -294,8 +301,7 @@ mul = term("*" term | "/" term)*
 term = num | "(" expr ")"
 ```
 
-
-(1 + 2) * 3の場合、以下の構文木になる
+(1 + 2) \* 3 の場合、以下の構文木になる
 
 ```
      *
@@ -303,27 +309,27 @@ term = num | "(" expr ")"
 1  2
 ```
 
-06の掛け算のときと構文木がかわることに気づく。
+06 の掛け算のときと構文木がかわることに気づく。
 
-1 + 2 * 3
+1 + 2 \* 3
 
-1. expr→mult→term→でnode 1を返す
-1. 次は+なのでexprで 左辺1 + 右辺mulのnodeをつくる
-1. mulで2を取得するが、*なので、左辺2 * 右辺3のnodeをmulがつくりreturn
-1. 結果、左辺1 + 右辺が↑でreturnされたnodeになる
+1. expr→mult→term→ で node 1 を返す
+1. 次は+なので expr で 左辺 1 + 右辺 mul の node をつくる
+1. mul で 2 を取得するが、_なので、左辺 2 _ 右辺 3 の node を mul がつくり return
+1. 結果、左辺 1 + 右辺が ↑ で return された node になる
 
-(1 + 2) * 3
+(1 + 2) \* 3
 
-1. expr1→mult→term→で(を発見し、再度expr2
-1. expr2でmult→termで node 1を返す
-1. expr2で次が+なので, 左辺1 + 右辺mul2-1を実行、結果 node 2が返る
-    ※2の次が)になっているところがポイント？
-1. expr2は結果、 1+2のnodeを返す
+1. expr1→mult→term→ で(を発見し、再度 expr2
+1. expr2 で mult→term で node 1 を返す
+1. expr2 で次が+なので, 左辺 1 + 右辺 mul2-1 を実行、結果 node 2 が返る
+   ※2 の次が)になっているところがポイント？
+1. expr2 は結果、 1+2 の node を返す
 
+##### 08-unary
 
-##### 08-unary  
-単項演算子 +3 or -3とか。
--3はわかるけど+3は使わない。-があるから、+を追加したとのこと。  
+単項演算子 +3 or -3 とか。
+-3 はわかるけど+3 は使わない。-があるから、+を追加したとのこと。
 
 単項演算子を加味すると以下の通りになる
 
@@ -337,27 +343,34 @@ term = num | "(" expr ")"
 これ以降は、コードの方に書いてた。
 
 ##### すごいうろ覚えな構造体
+
 構造体をコピーしたい場合、単純にこうしてた
+
 ```
   Node *copiedNode = targetNode
 ```
+
 これは、構造体のアドレスをコピーしているので、参照している構造体は`copied`も`target`も一緒。
-immutableなものしたいぜ！ってときは、メモリを確保する必要がある。
-immutableじゃなくて単純にアドレスを取っておきたいのであればこれでもいいはず。
+immutable なものしたいぜ！ってときは、メモリを確保する必要がある。
+immutable じゃなくて単純にアドレスを取っておきたいのであればこれでもいいはず。
 その場合、`memcpy`を使うよりも以下のようにするといいとのこと。
+
 ```
   Node copiedNode = *targetNode
 ```
-とはいえshallowCopyとのことなので、構造体にポインタがある場合は個別にdeepCopyするために関数を作る必要があるとかないとか。
 
+とはいえ shallowCopy とのことなので、構造体にポインタがある場合は個別に deepCopy するために関数を作る必要があるとかないとか。
 
 ##### ちょっと休憩、ローカル変数の場合のノード
 
 このケースを考えてみると
+
 ```
 a = 1 + 2
 ```
+
 構文木はこうなるね
+
 ```
  =
 a  +
@@ -366,8 +379,7 @@ a  +
 
 変数割り当てのアセンブリを、`lvar.s`に書いた
 
-
-##### gdbメモ
+##### gdb メモ
 
 https://sites.google.com/site/isutbe2018/zi-liaoasm/gdb
 http://higepon.hatenablog.com/entry/20091026/1256561135
@@ -381,8 +393,8 @@ http://higepon.hatenablog.com/entry/20091026/1256561135
 (gdb) quit     # 終了
 ```
 
+rsp が 16 の倍数になるように調整する途中の例
 
-rspが16の倍数になるように調整する途中の例
 ```
 .intel_syntax noprefix
 .global main
@@ -396,14 +408,3 @@ main:
   # raxの値が0以外であれば、 sub rsp, 8 or pushとか
   ret
 ```
-
-
-
-
-
-
-
-
-
-
-
