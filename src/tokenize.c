@@ -53,23 +53,19 @@ int is_alnum(char c) {
 
 // pが型である場合、型の文字列の長さを返す
 // 型じゃない場合、-1を返す
-int isType(char *p) {
-  Type types[] = {
-      "int",
-      // ここに追加してく。とりあえずintだけ。
-      //"char"
-  };
+Type isType(char *p) {
+  // 型の種類
+  Type types[] = {{"int", 3, TK_NUM}, {NULL, -1, -1}};
 
-  int typeLen = sizeof(types) / sizeof(Type);
-
-  for(int i = 0; i < typeLen; i++) {
-    int nameLen = strlen(types[i].name);
+  int i = 0;
+  for(; types[i].tk != -1; i++) {
+    int nameLen = types[i].nameLen;
     if(strncmp(p, types[i].name, nameLen) == 0 && !is_alnum(p[nameLen])) {
-      return nameLen;
+      return types[i];
     }
   }
 
-  return -1;
+  return types[i];
 }
 
 // 入力文字列pをトークナイズして、それを返す
@@ -175,11 +171,12 @@ void tokenize(char input[][MAX_COLUMN]) {
       }
 
       // 型名
-      int typeLen = -1;
-      if((typeLen = isType(p)) != -1) {
-        cur = new_token(TK_RESERVED, cur, p, line);
-        cur->len = typeLen;
-        p = p + typeLen;
+      Type type = isType(p);
+
+      if(type.name != NULL) {
+        cur = new_token(type.tk, cur, p, line);
+        cur->len = type.nameLen;
+        p = p + type.nameLen;
         continue;
       }
 
