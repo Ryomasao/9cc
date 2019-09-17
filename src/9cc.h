@@ -31,6 +31,12 @@ typedef struct Token
 // 現在着目しているトークン
 Token *token;
 
+
+typedef struct {
+  char *name;
+} Type;
+
+
 typedef struct Lvar
 {
   struct Lvar *next; // 次の変数かNULL
