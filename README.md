@@ -429,3 +429,55 @@ main()
 
 `*`は乗算で使ってるから、なにか考える必要があるかなと思ったけど、`unary`項に書くだけでいいんだなぁ。
 BNF で構文規則を考えるのがやっぱり天才的な気がする。
+
+#### vsocode setting
+
+```json
+{
+  "java.errors.incompleteClasspath.severity": "ignore",
+  "emmet.includeLanguages": {
+    "blade": "html",
+    "javascript": "javascriptreact"
+  },
+  "extensions.ignoreRecommendations": false,
+  "emmet.syntaxProfiles": {
+    "vue-html": "html",
+    "vue": "html"
+  },
+  "workbench.startupEditor": "newUntitledFile",
+  "workbench.editor.showTabs": false,
+  "editor.tabSize": 2,
+  "window.zoomLevel": 0,
+  "editor.formatOnSave": true,
+  // JavaScriptでのみ保存時フォーマットを有効化
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true
+  },
+  // prettierのシングルクオーテーションオプションをon
+  "prettier.semi": false,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "es5",
+  "terminal.integrated.shell.osx": "/usr/local/bin/bash",
+  "vetur.validation.template": false,
+  "prettier.eslintIntegration": true,
+  //es-lint
+  // https://qiita.com/madono/items/a134e904e891c5cb1d20
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    { "language": "typescript", "autoFix": true },
+    { "language": "typescriptreact", "autoFix": true }
+  ],
+  "C_Cpp.updateChannel": "Insiders",
+  "vsicons.dontShowNewVersionMessage": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  }
+}
+```
