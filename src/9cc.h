@@ -25,6 +25,7 @@ typedef struct Token
   int val;            // kindがTK_NUMの場合、その数値
   char *str;          // トークン文字列 (エラーメッセージ用)
   int len;            // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
+  int line;          // トークンに対応するコードの行
 } Token;
 
 // 現在着目しているトークン

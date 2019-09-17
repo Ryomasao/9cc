@@ -25,11 +25,12 @@ void error_at(char *loc, char *input, int line, char *msg)
 }
 
 // 新しいトークンを作成してcurに繋げる
-Token *new_token(TokenKind kind, Token *cur, char *str)
+Token *new_token(TokenKind kind, Token *cur, char *str, int line)
 {
   Token *tok = calloc(1, sizeof(Token));
   tok->kind = kind;
   tok->str = str;
+  tok->line = line;
   cur->next = tok;
   return tok;
 }
@@ -83,7 +84,7 @@ void tokenize(char input[][MAX_COLUMN])
       // > と >= は >=を優先してトークナイズする
       if (*p == '>' && !memcmp(p, ">=", 2))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 2;
         // 2文字進める
         p += 2;
@@ -92,7 +93,7 @@ void tokenize(char input[][MAX_COLUMN])
 
       if (*p == '<' && !memcmp(p, "<=", 2))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 2;
         p += 2;
         continue;
@@ -100,7 +101,7 @@ void tokenize(char input[][MAX_COLUMN])
 
       if (*p == '=' && !memcmp(p, "==", 2))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 2;
         p += 2;
         continue;
@@ -108,7 +109,7 @@ void tokenize(char input[][MAX_COLUMN])
 
       if (*p == '!' && !memcmp(p, "!=", 2))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 2;
         p += 2;
         continue;
@@ -129,7 +130,7 @@ void tokenize(char input[][MAX_COLUMN])
           *p == ',' ||
           *p == '&')
       {
-        cur = new_token(TK_RESERVED, cur, p++);
+        cur = new_token(TK_RESERVED, cur, p++, line);
         cur->len = 1;
         continue;
       }
@@ -138,7 +139,7 @@ void tokenize(char input[][MAX_COLUMN])
       {
         // p++ しなくていいのかなとおもったけど、strtolが10進数以外の文字のとこまでのアドレスを
         // pに設定してくれている
-        cur = new_token(TK_NUM, cur, p);
+        cur = new_token(TK_NUM, cur, p, line);
         cur->val = strtol(p, &p, 10);
         continue;
       }
@@ -147,7 +148,7 @@ void tokenize(char input[][MAX_COLUMN])
       // return
       if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6]))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p,line);
         cur->len = 6;
         p = p + 6;
         continue;
@@ -155,7 +156,7 @@ void tokenize(char input[][MAX_COLUMN])
 
       if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2]))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 2;
         p = p + 2;
         continue;
@@ -163,7 +164,7 @@ void tokenize(char input[][MAX_COLUMN])
 
       if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4]))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 4;
         p = p + 4;
         continue;
@@ -171,7 +172,7 @@ void tokenize(char input[][MAX_COLUMN])
 
       if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5]))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 5;
         p = p + 5;
         continue;
@@ -179,7 +180,7 @@ void tokenize(char input[][MAX_COLUMN])
 
       if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3]))
       {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p, line);
         cur->len = 3;
         p = p + 3;
         continue;
@@ -190,7 +191,7 @@ void tokenize(char input[][MAX_COLUMN])
       if ('a' <= *p && *p <= 'z')
       {
         int length = getLVarLength(p);
-        cur = new_token(TK_IDENT, cur, p);
+        cur = new_token(TK_IDENT, cur, p, line);
         cur->len = length;
         p = p + length;
         continue;
@@ -200,6 +201,6 @@ void tokenize(char input[][MAX_COLUMN])
     }
     line++;
   }
-  new_token(TK_EOF, cur, p);
+  new_token(TK_EOF, cur, p, line);
   token = head.next;
 }
