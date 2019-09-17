@@ -3,8 +3,7 @@
 // エラーを報告するための関数
 // printfと同じ引数をとる
 // 可変長引数については、一旦棚にあげておこう
-void error(char *fmt, ...)
-{
+void error(char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
@@ -12,8 +11,7 @@ void error(char *fmt, ...)
   exit(1);
 }
 
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
-{
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kind;
   node->lhs = lhs;
@@ -21,8 +19,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
   return node;
 }
 
-Node *new_node_num(int val)
-{
+Node *new_node_num(int val) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_NUM;
   node->val = val;
@@ -30,37 +27,29 @@ Node *new_node_num(int val)
 }
 
 // 指定されたトークンが期待している記号のときは真を返す
-bool is_supposed_token(char *op, Token *targetToken)
-{
-  if (targetToken->kind != TK_RESERVED ||
-      strlen(op) != targetToken->len ||
-      memcmp(targetToken->str, op, targetToken->len))
+bool is_supposed_token(char *op, Token *targetToken) {
+  if(targetToken->kind != TK_RESERVED || strlen(op) != targetToken->len ||
+     memcmp(targetToken->str, op, targetToken->len))
     return false;
 
   return true;
 }
 
 // 次のトークンが期待している記号のときは、トークンを1つ読み進めて真を返す
-bool consume(char *op)
-{
-  if (is_supposed_token(op, token))
-  {
+bool consume(char *op) {
+  if(is_supposed_token(op, token)) {
     token = token->next;
     return true;
-  }
-  else
-  {
+  } else {
     return false;
   }
 }
 
 // 次のトークンが期待している記号のときは、トークンを1つ読み進める
 // それ以外の場合は、エラーを報告する
-void expect(char *op)
-{
-  if (token->kind != TK_RESERVED ||
-      strlen(op) != token->len ||
-      memcmp(token->str, op, token->len))
+void expect(char *op) {
+  if(token->kind != TK_RESERVED || strlen(op) != token->len ||
+     memcmp(token->str, op, token->len))
     error("'%s'ではありません。 \n%d行目あたり", op, token->line + 1);
 
   token = token->next;
@@ -68,9 +57,8 @@ void expect(char *op)
 
 // 次のトークンが数値の場合、トークンを1つ読み進めて、その数値を返す
 // それ以外の場合は、エラーを報告する
-int expect_number()
-{
-  if (token->kind != TK_NUM)
+int expect_number() {
+  if(token->kind != TK_NUM)
     error("'数ではありません。 \n%d行目あたり", token->line + 1);
 
   int val = token->val;
@@ -80,10 +68,8 @@ int expect_number()
 
 // 次のトークンがidentのときはそのトークン(のアドレス)を返し、トークンを1つ読み進めておく
 // それ以外の場合は、NULLを返す
-Token *consume_ident()
-{
-  if (token->kind == TK_IDENT)
-  {
+Token *consume_ident() {
+  if(token->kind == TK_IDENT) {
     Token *identToken = token;
     token = token->next;
     return identToken;
@@ -94,12 +80,11 @@ Token *consume_ident()
 
 // 次のトークンがident()のときはidentのトークン(のアドレス)を返し、ident()の次までトークンを進めておく
 // それ以外の場合は、NULLを返す
-Token *consume_function()
-{
+Token *consume_function() {
   Token *token = consume_ident();
-  if (!token)
+  if(!token)
     return NULL;
-  if (!consume("("))
+  if(!consume("("))
     return NULL;
   return token;
 }
@@ -107,12 +92,9 @@ Token *consume_function()
 // グローバル変数のlocalsは変数名を格納しているリスト
 // tokenに格納されている変数名がすでに存在しているかを確認する
 // 存在していれば変数名のLvarを、なければNULLを返す
-Lvar *find_lvar(Token *token)
-{
-  for (Lvar *var = locals; var; var = var->next)
-  {
-    if (var->len == token->len && !memcmp(var->name, token->str, token->len))
-    {
+Lvar *find_lvar(Token *token) {
+  for(Lvar *var = locals; var; var = var->next) {
+    if(var->len == token->len && !memcmp(var->name, token->str, token->len)) {
       return var;
     }
   }
@@ -120,28 +102,24 @@ Lvar *find_lvar(Token *token)
 }
 
 // localsのリストの最後のアイテムを返す
-Lvar *getLastLocalsVar()
-{
+Lvar *getLastLocalsVar() {
   Lvar *temp = locals;
-  while (temp->next)
+  while(temp->next)
     temp = temp->next;
   return temp;
 }
 
-bool at_eof()
-{
-  if (token->kind == TK_EOF)
+bool at_eof() {
+  if(token->kind == TK_EOF)
     return true;
   return false;
 }
 
-Lvar *create_or_set_lvars(Token *tok)
-{
+Lvar *create_or_set_lvars(Token *tok) {
   // Tokenの変数が新しいものか、既存のものかを調べる
   Lvar *lvar = find_lvar(tok);
 
-  if (!lvar)
-  {
+  if(!lvar) {
     // 新規の場合、Lvarをつくって、リストをつなげてく
     lvar = calloc(1, sizeof(Lvar));
     lvar->name = tok->str;
@@ -157,14 +135,11 @@ Lvar *create_or_set_lvars(Token *tok)
 
 // 関数の()の中をパースする
 // 呼び出し後は、)←のトークンも読み進めているので、呼び出し側で)を読み飛ばす必要はないので注意
-void parse_argv(Node *argv[3])
-{
+void parse_argv(Node *argv[3]) {
   int i = 0;
 
-  while (true)
-  {
-    if (consume(")"))
-    {
+  while(true) {
+    if(consume(")")) {
       break;
     }
 
@@ -172,8 +147,7 @@ void parse_argv(Node *argv[3])
     i++;
 
     // 最後が,じゃなかったら引数はもうないとみなす
-    if (!consume(","))
-    {
+    if(!consume(",")) {
       expect(")");
       break;
     }
@@ -181,10 +155,8 @@ void parse_argv(Node *argv[3])
 }
 
 // term = num | ident ( "(" ")" )? | "(" expr ")"
-Node *term()
-{
-  if (consume("("))
-  {
+Node *term() {
+  if(consume("(")) {
     Node *node = expr();
     expect(")");
     return node;
@@ -193,22 +165,18 @@ Node *term()
   Token *tok = consume_ident();
 
   // Tokenが変数、もしくは関数の可能性がある場合
-  if (tok)
-  {
+  if(tok) {
     Node *node = calloc(1, sizeof(Node));
 
     // ひとつ先読みして(があれば関数とみなす
-    if (is_supposed_token("(", tok->next))
-    {
+    if(is_supposed_token("(", tok->next)) {
       expect("(");
       parse_argv(node->argv);
       node->kind = ND_FUNC;
       // callocは終端文字文を意識して+1してるけど、意味があるのかしら
       node->funcName = calloc(1, tok->len + 1);
       strncpy(node->funcName, tok->str, tok->len);
-    }
-    else
-    {
+    } else {
       // 変数
       node->kind = ND_LVAR;
       Lvar *lvar = create_or_set_lvars(tok);
@@ -221,65 +189,58 @@ Node *term()
   return new_node_num(expect_number());
 }
 
-Node *unary()
-{
+Node *unary() {
   // +3とかはただの3にする
-  if (consume("+"))
+  if(consume("+"))
     return term();
 
   // -3は 0 - 3のノードにする
-  if (consume("-"))
+  if(consume("-"))
     return new_node(ND_SUB, new_node_num(0), term());
 
-  if (consume("&"))
+  if(consume("&"))
     return new_node(ND_ADDR, term(), NULL);
 
-  if (consume("*"))
+  if(consume("*"))
     return new_node(ND_DEREF, term(), NULL);
 
   return term();
 }
 
-Node *mul()
-{
+Node *mul() {
   Node *node = unary();
-  for (;;)
-  {
-    if (consume("*"))
+  for(;;) {
+    if(consume("*"))
       node = new_node(ND_MUL, node, unary());
-    else if (consume("/"))
+    else if(consume("/"))
       node = new_node(ND_DIV, node, unary());
     else
       return node;
   }
 }
 
-Node *add()
-{
+Node *add() {
   Node *node = mul();
-  for (;;)
-  {
-    if (consume("+"))
+  for(;;) {
+    if(consume("+"))
       node = new_node(ND_ADD, node, mul());
-    else if (consume("-"))
+    else if(consume("-"))
       node = new_node(ND_SUB, node, mul());
     else
       return node;
   }
 }
 
-Node *relational()
-{
+Node *relational() {
   Node *node = add();
-  for (;;)
-  {
-    if (consume("<"))
+  for(;;) {
+    if(consume("<"))
       node = new_node(ND_LT, node, add());
-    else if (consume("<="))
+    else if(consume("<="))
       node = new_node(ND_LTE, node, add());
-    else if (consume(">"))
+    else if(consume(">"))
       node = new_node(ND_LT, add(), node);
-    else if (consume(">="))
+    else if(consume(">="))
       // 左辺と右辺を入れ替えて、<= を使うようにする:
       node = new_node(ND_LTE, add(), node);
     else
@@ -287,38 +248,30 @@ Node *relational()
   }
 }
 
-Node *eqaulity()
-{
+Node *eqaulity() {
   Node *node = relational();
-  for (;;)
-  {
-    if (consume("=="))
+  for(;;) {
+    if(consume("=="))
       node = new_node(ND_EQ, node, add());
-    else if (consume("!="))
+    else if(consume("!="))
       node = new_node(ND_NEQ, node, add());
     else
       return node;
   }
 }
 
-Node *assign()
-{
+Node *assign() {
   Node *node = eqaulity();
-  if (consume("="))
-  {
+  if(consume("=")) {
     return new_node(ND_ASSIGN, node, assign());
   }
 
   return node;
 }
 
-Node *expr()
-{
-  return assign();
-}
+Node *expr() { return assign(); }
 
-Node *if_else_statement()
-{
+Node *if_else_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_IF_ELSE_STMT;
   node->lhs = stmt();
@@ -327,8 +280,7 @@ Node *if_else_statement()
   return node;
 }
 
-Node *if_statement()
-{
+Node *if_statement() {
 
   Node *node = calloc(1, sizeof(Node));
   // ifのNode種別は、elseがあるかどうかで設定値がかわるので、とっておく
@@ -343,8 +295,7 @@ Node *if_statement()
   Token *currentToken = token;
   stmt();
 
-  if (is_supposed_token("else", token))
-  {
+  if(is_supposed_token("else", token)) {
     // ifelseの場合のNodeの構成はこんな感じ
     //       if
     //  expr   ifelse
@@ -354,9 +305,7 @@ Node *if_statement()
     // 進めたtokenを戻す
     token = currentToken;
     node->rhs = if_else_statement();
-  }
-  else
-  {
+  } else {
     // ifの場合のNodeの構成はこんな感じ
     //       if
     //  expr  stmt
@@ -368,8 +317,7 @@ Node *if_statement()
   return node;
 }
 
-Node *while_statement()
-{
+Node *while_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_WHILE;
   expect("(");
@@ -379,26 +327,21 @@ Node *while_statement()
   return node;
 }
 
-Node *for_stmt_statement()
-{
+Node *for_stmt_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_FOR_STMT;
   node->lhs = stmt();
   return node;
 }
 
-Node *for_loop_statement()
-{
+Node *for_loop_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_FOR_LOOP;
 
   // 後処理がない場合
-  if (consume(")"))
-  {
+  if(consume(")")) {
     node->lhs = NULL;
-  }
-  else
-  {
+  } else {
     node->lhs = expr();
     expect(")");
   }
@@ -407,19 +350,15 @@ Node *for_loop_statement()
   return node;
 }
 
-Node *for_continue_statement()
-{
+Node *for_continue_statement() {
 
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_FOR_CONTINUE;
 
   // 継続条件がない場合
-  if (consume(";"))
-  {
+  if(consume(";")) {
     node->lhs = NULL;
-  }
-  else
-  {
+  } else {
     node->lhs = expr();
     expect(";");
   }
@@ -433,19 +372,15 @@ Node *for_continue_statement()
 // for(; expr; expr) stmt()
 // for(;; expr) stmt()
 // for(;;) stmt()
-Node *for_statement()
-{
+Node *for_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_FOR;
   expect("(");
 
   // 初期化式がない場合
-  if (consume(";"))
-  {
+  if(consume(";")) {
     node->lhs = NULL;
-  }
-  else
-  {
+  } else {
     node->lhs = expr();
     expect(";");
   }
@@ -454,8 +389,7 @@ Node *for_statement()
   return node;
 }
 
-Node *block_statement()
-{
+Node *block_statement() {
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_BLOCK;
 
@@ -469,12 +403,10 @@ Node *block_statement()
   Node **stmtArray = calloc(100, sizeof(node));
 
   int stmtIndex = 0;
-  while (!consume("}"))
-  {
+  while(!consume("}")) {
     stmtArray[stmtIndex] = stmt();
     stmtIndex++;
-    if (stmtIndex > 100)
-    {
+    if(stmtIndex > 100) {
       error("ブロック構文内のstmtは100個まで");
     }
   }
@@ -482,11 +414,10 @@ Node *block_statement()
   return node;
 }
 
-Node *expect_func_difinition()
-{
+Node *expect_func_difinition() {
   Token *tok = consume_ident();
 
-  if (!tok)
+  if(!tok)
     error("トップレベルは関数しか書けないよ");
 
   expect("(");
@@ -513,54 +444,39 @@ bool isTopLebel = true;
 // while(expr) statement;
 // for(expr; expr; expr;) statement;
 // expr;
-Node *stmt()
-{
+Node *stmt() {
   Node *node;
 
-  if (isTopLebel)
-  {
+  if(isTopLebel) {
     node = expect_func_difinition();
     isTopLebel = false;
     return node;
   }
 
-  if (consume("return"))
-  {
+  if(consume("return")) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
-  }
-  else if (consume("if"))
-  {
+  } else if(consume("if")) {
     node = if_statement();
     return node;
-  }
-  else if (consume("while"))
-  {
+  } else if(consume("while")) {
     node = while_statement();
     return node;
-  }
-  else if (consume("for"))
-  {
+  } else if(consume("for")) {
     node = for_statement();
     return node;
     // ブロック構文
-  }
-  else if (consume("{"))
-  {
+  } else if(consume("{")) {
     node = block_statement();
     return node;
     // 関数の終了を表すブロック構文
-  }
-  else if (consume("}"))
-  {
+  } else if(consume("}")) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_FUNC_DIF_END;
     isTopLebel = true;
     return node;
-  }
-  else
-  {
+  } else {
     node = expr();
   }
 
@@ -570,11 +486,10 @@ Node *stmt()
 }
 
 // code[]にはstatement;という単位で格納されていくはず
-void program()
-{
+void program() {
   int i = 0;
 
-  while (!at_eof())
+  while(!at_eof())
     code[i++] = stmt();
 
   code[i] = NULL;

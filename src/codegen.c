@@ -2,26 +2,17 @@
 
 // 関数に引数を渡す際の第1引数から第6までは、どのレジスタにセットするかはきまってるので、配列で保持しておく。
 char mapFuncArgvToRegister[6][4] = {
-    "rdi",
-    "rsi",
-    "rdx",
-    "rcx",
-    "r8",
-    "r9",
+    "rdi", "rsi", "rdx", "rcx", "r8", "r9",
 };
 
 int LabelId = 0;
 char labelStack[9][100];
 
-int labelCounter()
-{
-  return LabelId++;
-}
+int labelCounter() { return LabelId++; }
 
 // 変数名に対応しているスタックのアドレスをスタックに積んどく関数
-void gen_lval(Node *node)
-{
-  if (node->kind != ND_LVAR)
+void gen_lval(Node *node) {
+  if(node->kind != ND_LVAR)
     error("代入式の左辺値が変数ではありません");
 
   printf("  mov rax, rbp\n");
@@ -56,14 +47,12 @@ void gen_lval(Node *node)
 // 4の再帰が、同様にpopして、結果をスタックに格納
 // 2の再帰が、略...
 
-void gen(Node *node)
-{
+void gen(Node *node) {
 
-  if (node == NULL)
+  if(node == NULL)
     return;
 
-  switch (node->kind)
-  {
+  switch(node->kind) {
   case ND_NUM:
     // 数値だったらスタックにpush
     printf("  push %d\n", node->val);
@@ -90,8 +79,7 @@ void gen(Node *node)
     printf("  pop rbp\n");
     printf("  ret\n");
     return;
-  case ND_IF:
-  {
+  case ND_IF: {
     // if(node->lhs) node-rhsの形式になってる
     // まずは、node-lhsのコードをつくる
     gen(node->lhs);
@@ -106,8 +94,7 @@ void gen(Node *node)
     printf(".Lend%d:\n", labelId);
     return;
   }
-  case ND_IF_ELSE:
-  {
+  case ND_IF_ELSE: {
     int elseLabelId = labelCounter();
     int endLabelId = labelCounter();
     // if-elseの場合、if-else-stmtでjmp先のラベルをみる必要がある
@@ -124,8 +111,7 @@ void gen(Node *node)
     gen(node->rhs);
     return;
   }
-  case ND_IF_ELSE_STMT:
-  {
+  case ND_IF_ELSE_STMT: {
     int endLabelId = pop();
     int elseLabelId = pop();
 
@@ -138,8 +124,7 @@ void gen(Node *node)
     printf(".LifEnd%d:\n", endLabelId);
     return;
   }
-  case ND_WHILE:
-  {
+  case ND_WHILE: {
     int whileBeginLabelId = labelCounter();
     int whileEndLabelId = labelCounter();
     printf(".LWhileBegin%d:\n", whileBeginLabelId);
@@ -152,17 +137,16 @@ void gen(Node *node)
     printf(".LWhileEnd%d:\n", whileEndLabelId);
     return;
   }
-  case ND_FOR:
-  {
+  case ND_FOR: {
     int forBeginLabelId = labelCounter();
     int forEndLabelId = labelCounter();
     push(forBeginLabelId);
     push(forEndLabelId);
 
-    //for(expr; expr; expr;)
+    // for(expr; expr; expr;)
     //     👆
 
-    //printf("#FOR文の初期化処理\n");
+    // printf("#FOR文の初期化処理\n");
     gen(node->lhs);
 
     printf(".LForBegin%d:\n", forBeginLabelId);
@@ -171,12 +155,11 @@ void gen(Node *node)
     printf(".LForEnd%d:\n", forEndLabelId);
     return;
   }
-  case ND_FOR_CONTINUE:
-  {
+  case ND_FOR_CONTINUE: {
     int forEndLabelId = pop();
-    //for(expr; expr; expr;)
+    // for(expr; expr; expr;)
     //           👆
-    //printf("#FOR文の継続判定\n");
+    // printf("#FOR文の継続判定\n");
     gen(node->lhs);
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
@@ -186,36 +169,32 @@ void gen(Node *node)
     gen(node->rhs);
     return;
   }
-  case ND_FOR_LOOP:
-  {
+  case ND_FOR_LOOP: {
     int forBeginLabelId = pop();
 
-    //printf("#FOR文内で実行される式\n");
+    // printf("#FOR文内で実行される式\n");
     // to ND_FOR_STMT
     gen(node->rhs);
 
-    //for(expr; expr; expr;)
+    // for(expr; expr; expr;)
     //                 👆
     // STMTの処理おわってから、処理を行うので、
     // rhsとlhsの処理順が逆になってる
-    //printf("#FOR文の後処理\n");
+    // printf("#FOR文の後処理\n");
     gen(node->lhs);
     printf("  jmp .LForBegin%d\n", forBeginLabelId);
 
     return;
   }
-  case ND_FOR_STMT:
-  {
-    //for(expr; expr; expr;)
+  case ND_FOR_STMT: {
+    // for(expr; expr; expr;)
     // stmt()
     //   👆
     gen(node->lhs);
     return;
   }
-  case ND_BLOCK:
-  {
-    for (int i = 0; node->vector[i]; i++)
-    {
+  case ND_BLOCK: {
+    for(int i = 0; node->vector[i]; i++) {
       gen(node->vector[i]);
       // statementごとに、最後にスタックにpushしている。スタックが枯渇しないようにpopしておく。
       // あんま意識してなかった。一つ前の処理の結果をstackに残しておく発想だからかな？
@@ -226,27 +205,26 @@ void gen(Node *node)
     return;
   }
   // 関数呼び出し foo()
-  case ND_FUNC:
-  {
+  case ND_FUNC: {
 
     // TODO: ↓未実装
     // 関数呼び出しの際はRSPの値が16の倍数になっていることを前提としている関数がある
     // なので、RSPの値が16の倍数ではない場合、調整する
-    //int rspLabelId = labelCounter();
-    //printf("  mov rax, rsp\n");
-    //printf("  mov r10, 16\n");
-    //printf("  cqo\n");
-    //printf("  div r10\n");
-    //printf("  cmp rdx, 0\n");
-    //printf("  je .Lrsp%d\n", rspLabelId);
-    //printf("  sub rsp, 8\n");
-    //// 関数呼び出しから戻ったときに、rspが調整されているかどうかを判別するために使う
-    //printf("  mov r11, 1\n");
+    // int rspLabelId = labelCounter();
+    // printf("  mov rax, rsp\n");
+    // printf("  mov r10, 16\n");
+    // printf("  cqo\n");
+    // printf("  div r10\n");
+    // printf("  cmp rdx, 0\n");
+    // printf("  je .Lrsp%d\n", rspLabelId);
+    // printf("  sub rsp, 8\n");
+    ////
+    ///関数呼び出しから戻ったときに、rspが調整されているかどうかを判別するために使う
+    // printf("  mov r11, 1\n");
 
-    //printf(".Lrsp%d:\n", rspLabelId);
+    // printf(".Lrsp%d:\n", rspLabelId);
 
-    for (int i = 0; node->argv[i]; i++)
-    {
+    for(int i = 0; node->argv[i]; i++) {
       gen(node->argv[i]);
       printf("  pop rax\n");
       printf("  mov %s, rax\n", mapFuncArgvToRegister[i]);
@@ -255,12 +233,12 @@ void gen(Node *node)
     printf("  call %s\n", node->funcName);
 
     // rspが調整されている場合、元に戻す
-    //int rspRestoreLabelId = labelCounter();
-    //printf("  cmp r11, 0\n");
-    //printf("  je .LrspRestore%d\n", rspRestoreLabelId);
-    //printf("  mov r11, 0\n");
-    //printf("  add rsp, 8\n");
-    //printf(".LrspRestore%d:\n", rspRestoreLabelId);
+    // int rspRestoreLabelId = labelCounter();
+    // printf("  cmp r11, 0\n");
+    // printf("  je .LrspRestore%d\n", rspRestoreLabelId);
+    // printf("  mov r11, 0\n");
+    // printf("  add rsp, 8\n");
+    // printf(".LrspRestore%d:\n", rspRestoreLabelId);
 
     // 関数を呼び出した結果、raxに関数の結果が残っている
     // それをスタックに残す
@@ -268,8 +246,7 @@ void gen(Node *node)
     return;
   }
   // 関数の定義 foo(){ }
-  case ND_FUNC_DIF:
-  {
+  case ND_FUNC_DIF: {
     printf("%s:\n", node->funcName);
 
     // プロローグ処理
@@ -278,8 +255,7 @@ void gen(Node *node)
     // 変数26個分の領域を確保する
     printf("  sub rsp, 208\n");
 
-    for (int i = 0; node->argv[i]; i++)
-    {
+    for(int i = 0; node->argv[i]; i++) {
       gen_lval(node->argv[i]);
       printf("  pop rax\n");
       printf("  mov [rax], %s\n", mapFuncArgvToRegister[i]);
@@ -288,8 +264,7 @@ void gen(Node *node)
     return;
   }
     // 関数の終了のブロック構文}のとき
-  case ND_FUNC_DIF_END:
-  {
+  case ND_FUNC_DIF_END: {
     // ここのアセンブリが実行されるパターンは、関数でreturnしていないとき
     // returnしていないときはNULLを返したほうがいいんだろうけど、
     // ひとまず直前の式の結果がスタックトップにあると思うので、それを返すようにする
@@ -321,8 +296,7 @@ void gen(Node *node)
   printf("  pop rdi\n");
   printf("  pop rax\n");
 
-  switch (node->kind)
-  {
+  switch(node->kind) {
   case ND_ADD:
     printf("  add rax, rdi\n");
     break;
@@ -351,7 +325,8 @@ void gen(Node *node)
     // まとめると、 2 / 3の場合
     // pop rdi ⇨ 3
     // pop rax ⇨ 2
-    // raxの2を128ビットに拡張して、 2の値を、 rdiの3でわる。結果がraxにセットされる
+    // raxの2を128ビットに拡張して、 2の値を、
+    // rdiの3でわる。結果がraxにセットされる
     printf("  cqo\n");
     printf("  idiv rdi\n");
     break;
@@ -359,8 +334,10 @@ void gen(Node *node)
     // SF <> OFの場合、1をセット
     // SF <> OFが < になるのかよくわからない
     // note)
-    // SF: 計算結果が負のとき0になる。cmp 1 2 は 1-2をしているとのことなので、SFは0になる
-    // OF: 符号あり整数の桁あふれが発生した場合に1。 1-2はマイナスになるけど、これは桁あふれ？
+    // SF: 計算結果が負のとき0になる。cmp 1 2 は
+    // 1-2をしているとのことなので、SFは0になる OF:
+    // 符号あり整数の桁あふれが発生した場合に1。
+    // 1-2はマイナスになるけど、これは桁あふれ？
     printf("  cmp rax, rdi\n");
     printf("  setl al\n");
     printf("  movzb rax, al\n");
@@ -379,7 +356,8 @@ void gen(Node *node)
     // https://www.felixcloutier.com/x86/setcc
     // ZFレジスタは、cmp rax rdiをやったとき、rax rdiが同じ値なら1がセットされる
     // alはraxレジスタの下位8bit
-    // sete raxができればいいんだけど、フラグレジスタの値はal経由でしかできないみたい
+    // sete
+    // raxができればいいんだけど、フラグレジスタの値はal経由でしかできないみたい
     // mobzvはraxの上位56bitをゼロクリアする
     printf("  cmp rax, rdi\n");
     printf("  sete al\n");

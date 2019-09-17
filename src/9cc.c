@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
 
     // srcpyを使えばよさそう。値そのものをコピーする。
     // ポインタじゃなくって値そのもの。
-    // man でみてみると第一引数はcharへのポインタになってる。つまり、input[0]はcharへのポインタだって考えていいのかな
+    // man
+    // でみてみると第一引数はcharへのポインタになってる。つまり、input[0]はcharへのポインタだって考えていいのかな
     // https://stackoverflow.com/questions/28680557/c-assign-string-from-argv-to-char-array
     strcpy(input[0], argv[1]);
     // ファイル読み込みと同じでEOFを設定しとく
@@ -55,4 +56,3 @@ int main(int argc, char **argv) {
 
   return 1;
 }
-
