@@ -91,9 +91,6 @@ typedef struct Node
 #define MAX_COLUMN 80
 int readFile(char *path, char input[][MAX_COLUMN]);
 
-// 入力プログラム
-char *user_input;
-
 // parse機能
 void tokenize(char input[][MAX_COLUMN]);
 void program();

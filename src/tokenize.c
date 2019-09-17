@@ -1,19 +1,20 @@
 #include "9cc.h"
 
 // エラー箇所を報告するための関数
-void error_at(char *loc, char *msg)
+void error_at(char *loc, char *input, int line, char *msg)
 {
   // 走査中の文字のアドレスからユーザー入力開始位置のアドレスを引く
   // そうすると、走査中の文字が開始位置から何文字目か判別できる
   // ASCは1文字 1byte で16進数で表現するとaは0x61
   // 61は2進数で 01100001で
-  int pos = loc - user_input;
+  int pos = loc - input;
 
   // debug
   //printf(" address of loc  %p \n", loc);
   //printf(" address of user_input  %p \n", user_input);
 
-  fprintf(stderr, "%s\n", user_input);
+  fprintf(stderr, "%d行目\n", line + 1);
+  fprintf(stderr, "%s\n", input);
   // pos分スペースを出力する
   // そうするとこんなエラーメッセージになる素敵
   // 123a1
@@ -195,7 +196,7 @@ void tokenize(char input[][MAX_COLUMN])
         continue;
       }
 
-      error_at(p, "トークナイスできません");
+      error_at(p, input[line], line, "トークナイスできません");
     }
     line++;
   }
