@@ -6,10 +6,6 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  // ユーザー入力値をグローバル変数として取っておく
-  // エラー関数用
-  // TODO: ファイルから読み込む場合に対応してない
-  user_input = argv[1];
   char input[MAX_LINE][MAX_COLUMN] = {};
 
   // modeに値があれば、argv1の値はファイルパスとして扱う
