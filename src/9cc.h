@@ -74,7 +74,8 @@ typedef enum {
   ND_FUNC_DIF,     // 関数定義
   ND_FUNC_DIF_END, // 関数の終了 } が格納
   ND_ADDR,         // & 変数のアドレスを取得
-  ND_DEREF, // * 変数の値をアドレスをみなして、そのアドレスの値を取得
+  ND_DEREF,        // * 変数の値をアドレスをみなして、そのアドレスの値を取得
+  ND_INT           // INT型
 } NodeKind;
 
 // Node型の中にNodeがある

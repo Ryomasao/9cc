@@ -78,17 +78,6 @@ Token *consume_ident() {
   return NULL;
 }
 
-// 次のトークンがident()のときはidentのトークン(のアドレス)を返し、ident()の次までトークンを進めておく
-// それ以外の場合は、NULLを返す
-Token *consume_function() {
-  Token *token = consume_ident();
-  if(!token)
-    return NULL;
-  if(!consume("("))
-    return NULL;
-  return token;
-}
-
 // グローバル変数のlocalsは変数名を格納しているリスト
 // tokenに格納されている変数名がすでに存在しているかを確認する
 // 存在していれば変数名のLvarを、なければNULLを返す
@@ -154,7 +143,48 @@ void parse_argv(Node *argv[3]) {
   }
 }
 
-// term = num | ident ( "(" ")" )? | "(" expr ")"
+// node->kind = ND_FUNC
+// node->argv = 引数
+// node->lhs  = NULL
+// node->rhs  = NULL
+Node* if_token_is_func_return_node(Token *tok) {
+  if(is_supposed_token("(", tok->next)) {
+    expect("(");
+
+    Node *node = calloc(1, sizeof(Node));
+    parse_argv(node->argv);
+    node->kind = ND_FUNC;
+    // callocは終端文字文を意識して+1してるけど、意味があるのかしら
+    node->funcName = calloc(1, tok->len + 1);
+    strncpy(node->funcName, tok->str, tok->len);
+    return node;
+  }
+  return NULL;
+}
+
+// node->kind = ND_LVAR
+// node->lhs  = NULL
+// node->rhs  = NULL
+Node* if_token_is_lvar_return_node(Token *tok) {
+  Node *node = calloc(1, sizeof(Node));
+  // 変数
+  node->kind = ND_LVAR;
+  Lvar *lvar = create_or_set_lvars(tok);
+  node->offset = lvar->offset;
+  return node;
+}
+
+Node* return_func_or_lvar_node(Token *tok) {
+    Node *node;
+
+    node = if_token_is_func_return_node(tok);
+    if(node) return node;
+
+    node = if_token_is_lvar_return_node(tok);
+    return node;
+}
+
+// term = num | type |ident ( "(" ")" )? | "(" expr ")"
 Node *term() {
   if(consume("(")) {
     Node *node = expr();
@@ -162,32 +192,23 @@ Node *term() {
     return node;
   }
 
+  // 宣言
+  if(token->kind == TK_INT) {
+    token = token->next;
+    Token *tok = consume_ident();
+    if(!tok) error("型の後に変数がないよ");
+    return return_func_or_lvar_node(tok);
+  }
+
+  // 実装 
   Token *tok = consume_ident();
-
-  // Tokenが変数、もしくは関数の可能性がある場合
   if(tok) {
-    Node *node = calloc(1, sizeof(Node));
-
-    // ひとつ先読みして(があれば関数とみなす
-    if(is_supposed_token("(", tok->next)) {
-      expect("(");
-      parse_argv(node->argv);
-      node->kind = ND_FUNC;
-      // callocは終端文字文を意識して+1してるけど、意味があるのかしら
-      node->funcName = calloc(1, tok->len + 1);
-      strncpy(node->funcName, tok->str, tok->len);
-    } else {
-      // 変数
-      node->kind = ND_LVAR;
-      Lvar *lvar = create_or_set_lvars(tok);
-      node->offset = lvar->offset;
-    }
-
-    return node;
+    return return_func_or_lvar_node(tok);
   }
 
   return new_node_num(expect_number());
 }
+
 
 Node *unary() {
   // +3とかはただの3にする
@@ -415,6 +436,11 @@ Node *block_statement() {
 }
 
 Node *expect_func_difinition() {
+
+  if(token->kind != TK_INT) 
+    error("トップレベルの関数に型がないよ");
+  token = token->next;
+
   Token *tok = consume_ident();
 
   if(!tok)

@@ -1,4 +1,4 @@
-main()
+int main()
 {
   a = 13;
   b = &a;

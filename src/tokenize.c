@@ -55,7 +55,10 @@ int is_alnum(char c) {
 // 型じゃない場合、-1を返す
 Type isType(char *p) {
   // 型の種類
-  Type types[] = {{"int", 3, TK_NUM}, {NULL, -1, -1}};
+  Type types[] = {
+    { "int", 3, TK_INT}, 
+    { NULL, -1, -1 }
+  };
 
   int i = 0;
   for(; types[i].tk != -1; i++) {
