@@ -105,21 +105,28 @@ bool at_eof() {
 }
 
 Lvar *create_or_set_lvars(Token *tok) {
-  // Tokenの変数が新しいものか、既存のものかを調べる
-  Lvar *lvar = find_lvar(tok);
+  //// Tokenの変数が新しいものか、既存のものかを調べる
+  //Lvar *lvar = find_lvar(tok);
 
-  if(!lvar) {
-    // 新規の場合、Lvarをつくって、リストをつなげてく
-    lvar = calloc(1, sizeof(Lvar));
-    lvar->name = tok->str;
-    lvar->len = tok->len;
-    Lvar *prevVar = getLastLocalsVar();
-    // offsetは8バイト？ずつ足してく
-    lvar->offset = prevVar->offset + 8;
-    prevVar->next = lvar;
-  }
+  //if(!lvar) {
+  //  // 新規の場合、Lvarをつくって、リストをつなげてく
+  //  lvar = calloc(1, sizeof(Lvar));
+  //  lvar->name = tok->str;
+  //  lvar->len = tok->len;
+  //  Lvar *prevVar = getLastLocalsVar();
+  //  // offsetは8バイト？ずつ足してく
+  //  lvar->offset = prevVar->offset + 8;
+  //  prevVar->next = lvar;
+  //}
 
-  return lvar;
+  //return lvar;
+
+  Lvar lvar;
+  lvar.name = "";
+  lvar.len = 0;
+  lvar.offset = 0;
+
+  locals[functionId] = lvar;
 }
 
 // 関数の()の中をパースする
@@ -184,7 +191,7 @@ Node* return_func_or_lvar_node(Token *tok) {
     return node;
 }
 
-// term = num | type |ident ( "(" ")" )? | "(" expr ")"
+// term = "(" expr ")" | type ident ( "(" ")" )? |ident ( "(" ")" )? | num
 Node *term() {
   if(consume("(")) {
     Node *node = expr();
@@ -501,6 +508,8 @@ Node *stmt() {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_FUNC_DIF_END;
     isTopLebel = true;
+    // 関数ごとに変数名を管理するために、functionIDを降る
+    functionId++;
     return node;
   } else {
     node = expr();
