@@ -82,7 +82,7 @@ Token *consume_ident() {
 // tokenに格納されている変数名がすでに存在しているかを確認する
 // 存在していれば変数名のLvarを、なければNULLを返す
 Lvar *find_lvar(Token *token) {
-  for(Lvar *var = locals; var; var = var->next) {
+  for(Lvar *var = locals[functionId]; var; var = var->next) {
     if(var->len == token->len && !memcmp(var->name, token->str, token->len)) {
       return var;
     }
@@ -92,7 +92,12 @@ Lvar *find_lvar(Token *token) {
 
 // localsのリストの最後のアイテムを返す
 Lvar *getLastLocalsVar() {
-  Lvar *temp = locals;
+  Lvar *temp = locals[functionId];
+
+  // tempがNULLのとき、temp->nextもNULLでwhile(temp->next)は抜けると思ったけど
+  // BAD ACCESSになるので、抜ける
+  if(!temp) return NULL;
+
   while(temp->next)
     temp = temp->next;
   return temp;
@@ -105,28 +110,29 @@ bool at_eof() {
 }
 
 Lvar *create_or_set_lvars(Token *tok) {
-  //// Tokenの変数が新しいものか、既存のものかを調べる
-  //Lvar *lvar = find_lvar(tok);
+  // Tokenの変数が新しいものか、既存のものかを調べる
+  Lvar *lvar = find_lvar(tok);
 
-  //if(!lvar) {
-  //  // 新規の場合、Lvarをつくって、リストをつなげてく
-  //  lvar = calloc(1, sizeof(Lvar));
-  //  lvar->name = tok->str;
-  //  lvar->len = tok->len;
-  //  Lvar *prevVar = getLastLocalsVar();
-  //  // offsetは8バイト？ずつ足してく
-  //  lvar->offset = prevVar->offset + 8;
-  //  prevVar->next = lvar;
-  //}
+  if(!lvar) {
+    // 新しい変数の場合、Lvarをつくって、リストをつなげてく
+    lvar = calloc(1, sizeof(Lvar));
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    Lvar *prevVar = getLastLocalsVar();
 
-  //return lvar;
+    if(!prevVar) {
+      // リストの先頭は、直接配列に格納する
+      lvar->offset = 0;
+      locals[functionId] = lvar;
+    } else {
+      // offsetは8バイト？ずつ足してく
+      lvar->offset = prevVar->offset + 8;
+      prevVar->next = lvar;
+    }
 
-  Lvar lvar;
-  lvar.name = "";
-  lvar.len = 0;
-  lvar.offset = 0;
+  }
 
-  locals[functionId] = lvar;
+  return lvar;
 }
 
 // 関数の()の中をパースする

@@ -45,7 +45,7 @@ typedef struct Lvar {
 } Lvar;
 
 // ローカル変数
-Lvar locals[100];
+Lvar* locals[100];
 int functionId;
 
 // 抽象構文木のノードの種類
