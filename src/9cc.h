@@ -8,31 +8,36 @@
 #include "stack.h"
 
 // トークンの型を表す値
-typedef enum
-{
+typedef enum {
   TK_RESERVED, // 記号
-  TK_IDENT,    // 識別子
+  TK_IDENT,    // 変数 or 関数名
+  TK_INT,      // int型
   TK_RETURN,   // return文
   TK_NUM,      // 整数トークン
   TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
 
 // トークンの型
-typedef struct Token
-{
+typedef struct Token {
   TokenKind kind;     // トークンの型
   struct Token *next; // 次の入力トークン
   int val;            // kindがTK_NUMの場合、その数値
   char *str;          // トークン文字列 (エラーメッセージ用)
-  int len;            // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
-  int line;          // トークンに対応するコードの行
+  int len; // トークンの長さ kindがTK_RESERVEDのときのみ桁数をセット
+  int line; // トークンに対応するコードの行
 } Token;
 
 // 現在着目しているトークン
 Token *token;
 
-typedef struct Lvar
-{
+// 型を管理する構造体
+typedef struct Type {
+  char *name;  // 型名 ex) int
+  int nameLen; // 型名の長さ
+  int tk;      // 型に対応するtokenの種類
+} Type;
+
+typedef struct Lvar {
   struct Lvar *next; // 次の変数かNULL
   char *name;        // 変数の名前
   int len;           // 名前の長さ
@@ -40,11 +45,11 @@ typedef struct Lvar
 } Lvar;
 
 // ローカル変数
-Lvar *locals;
+Lvar* locals[100];
+int functionId;
 
 // 抽象構文木のノードの種類
-typedef enum
-{
+typedef enum {
   ND_ADD,          // +
   ND_SUB,          // -
   ND_MUL,          // *
@@ -71,18 +76,20 @@ typedef enum
   ND_FUNC_DIF_END, // 関数の終了 } が格納
   ND_ADDR,         // & 変数のアドレスを取得
   ND_DEREF,        // * 変数の値をアドレスをみなして、そのアドレスの値を取得
+  ND_INT           // INT型
 } NodeKind;
 
 // Node型の中にNodeがある
-// typef struct Node　としておくと、lhsとかでNode型がわからないことによるwarningが消えた
-typedef struct Node
-{
-  NodeKind kind;        // 演算子かND_NUM
-  struct Node *lhs;     // 左辺
-  struct Node *rhs;     // 右辺
-  int val;              // kindがND_NUMの場合のみ使う
-  int offset;           // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
-  struct Node **vector; // kindがND_BLOCKの場合、stmtのnode保持する配列へのポインタ
+// typef struct
+// Node　としておくと、lhsとかでNode型がわからないことによるwarningが消えた
+typedef struct Node {
+  NodeKind kind;    // 演算子かND_NUM
+  struct Node *lhs; // 左辺
+  struct Node *rhs; // 右辺
+  int val;          // kindがND_NUMの場合のみ使う
+  int offset; // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
+  struct Node *
+      *vector; // kindがND_BLOCKの場合、stmtのnode保持する配列へのポインタ
   char *funcName;       // kindがND_FUNCの場合の関数名
   struct Node *argv[3]; // kindがND_FUNCの場合の引数
 } Node;

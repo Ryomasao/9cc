@@ -1,5 +1,6 @@
 #include "9cc.h"
 
+
 int main(int argc, char **argv) {
   if(argc > 3) {
     fprintf(stderr, "引数の数が正しくありません\n");
@@ -28,7 +29,8 @@ int main(int argc, char **argv) {
 
     // srcpyを使えばよさそう。値そのものをコピーする。
     // ポインタじゃなくって値そのもの。
-    // man でみてみると第一引数はcharへのポインタになってる。つまり、input[0]はcharへのポインタだって考えていいのかな
+    // man
+    // でみてみると第一引数はcharへのポインタになってる。つまり、input[0]はcharへのポインタだって考えていいのかな
     // https://stackoverflow.com/questions/28680557/c-assign-string-from-argv-to-char-array
     strcpy(input[0], argv[1]);
     // ファイル読み込みと同じでEOFを設定しとく
@@ -37,8 +39,8 @@ int main(int argc, char **argv) {
 
   // ローカル変数格納用の変数の初期設定
   // これにより、localsの先頭はゴミデータになっちゃうので微妙
-  locals = calloc(1, sizeof(Lvar));
-  locals->next = NULL;
+  //  locals = calloc(1, sizeof(Lvar));
+  //  locals->next = NULL;
 
   // トークナイズする
   tokenize(input);
@@ -55,4 +57,3 @@ int main(int argc, char **argv) {
 
   return 1;
 }
-
