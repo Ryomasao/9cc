@@ -122,7 +122,7 @@ Lvar *create_or_set_lvars(Token *tok) {
 
     if(!prevVar) {
       // リストの先頭は、直接配列に格納する
-      lvar->offset = 0;
+      lvar->offset = 8;
       locals[functionId] = lvar;
     } else {
       // offsetは8バイト？ずつ足してく
@@ -143,6 +143,39 @@ void parse_argv(Node *argv[3]) {
   while(true) {
     if(consume(")")) {
       break;
+    }
+
+    if(token->kind == TK_INT) {
+      error("関数呼び出しに型情報はいらないよ");
+    }
+
+    // term()じゃなくって、lvar()を作ったほうがいいなぁ、、、
+    // とおもったけど、func(n - 1)とかやるから、exprじゃなきゃだめ！
+    argv[i] = expr();
+    i++;
+
+    // 最後が,じゃなかったら引数はもうないとみなす
+    if(!consume(",")) {
+      expect(")");
+      break;
+    }
+  }
+}
+
+// parse_argvで型があるかをチェックする
+// かなり冗長だけどひとまずね、、、
+void parse_argv_with_type(Node *argv[3]) {
+  int i = 0;
+
+  while(true) {
+    if(consume(")")) {
+      break;
+    }
+
+    if(token->kind != TK_INT) {
+      error("関数の引数に型がないよ");
+    } else {
+      token = token->next;
     }
 
     argv[i] = expr();
@@ -221,7 +254,6 @@ Node *term() {
 
   return new_node_num(expect_number());
 }
-
 
 Node *unary() {
   // +3とかはただの3にする
@@ -467,7 +499,7 @@ Node *expect_func_difinition() {
   strncpy(node->funcName, tok->str, tok->len);
 
   // 引数をパース )も読み飛ばしてる
-  parse_argv(node->argv);
+  parse_argv_with_type(node->argv);
 
   expect("{");
 
