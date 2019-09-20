@@ -64,6 +64,20 @@ void gen(Node *node) {
     printf("  push rax\n");
     return;
   case ND_ASSIGN:
+    // node->kind: ND_ASSIGN
+    // node->lhs: LVAR or DEREF
+    // node->rhs: パターンがいっぱいありそう
+
+
+    // *aが左辺値に来る場合
+    if(node->lhs->kind == ND_DEREF) {
+      // 右辺値として、実行する
+      // そうすると、aに格納されている値がスタックに積まれる
+      // その値は、アドレスであるはず
+      gen(node->lhs);
+      return;
+    } 
+
     gen_lval(node->lhs);
     gen(node->rhs);
     printf("  pop rdi\n");
@@ -281,7 +295,14 @@ void gen(Node *node) {
     gen_lval(node->lhs);
     return;
   case ND_DEREF:
+    // node->kind: ND_DEREF
+    // node->lhs: LVAR
+    // node->rhs: NULL
+
+    // ex) *a
+    // 変数aのアドレスをスタックに積む
     gen(node->lhs);
+    // 変数aのアドレスに格納されている値スタックに積む
     printf("  pop rax\n");
     printf("  mov rax, [rax]\n");
     printf("  push rax\n");

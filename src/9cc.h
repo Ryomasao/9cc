@@ -31,11 +31,11 @@ typedef struct Token {
 Token *token;
 
 // 型を管理する構造体
-typedef struct Type {
+typedef struct TypeSymbol {
   char *name;  // 型名 ex) int
   int nameLen; // 型名の長さ
   int tk;      // 型に対応するtokenの種類
-} Type;
+} TypeSymbol;
 
 typedef struct Lvar {
   struct Lvar *next; // 次の変数かNULL
@@ -47,6 +47,12 @@ typedef struct Lvar {
 // ローカル変数
 Lvar* locals[100];
 int functionId;
+
+typedef struct Type {
+  enum { INT, PTR } ty;
+  struct TYPE *ptr_to;
+} Type;
+
 
 // 抽象構文木のノードの種類
 typedef enum {

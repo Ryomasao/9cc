@@ -53,9 +53,9 @@ int is_alnum(char c) {
 
 // pが型である場合、型の文字列の長さを返す
 // 型じゃない場合、-1を返す
-Type isType(char *p) {
+TypeSymbol isType(char *p) {
   // 型の種類
-  Type types[] = {
+  TypeSymbol types[] = {
     { "int", 3, TK_INT}, 
     { NULL, -1, -1 }
   };
@@ -174,7 +174,7 @@ void tokenize(char input[][MAX_COLUMN]) {
       }
 
       // 型名
-      Type type = isType(p);
+      TypeSymbol type = isType(p);
 
       if(type.name != NULL) {
         cur = new_token(type.tk, cur, p, line);

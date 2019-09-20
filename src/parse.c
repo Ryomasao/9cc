@@ -69,6 +69,11 @@ int expect_number() {
 // 次のトークンがidentのときはそのトークン(のアドレス)を返し、トークンを1つ読み進めておく
 // それ以外の場合は、NULLを返す
 Token *consume_ident() {
+  Token *origin = token;
+
+  // ポインタを考慮する
+  while(consume("*"));
+
   if(token->kind == TK_IDENT) {
     Token *identToken = token;
     token = token->next;
@@ -267,6 +272,9 @@ Node *unary() {
   if(consume("&"))
     return new_node(ND_ADDR, term(), NULL);
 
+  // int *a の場合と、 *a の場合とで、parseの仕方が異なる
+  // *aはここで、パースされる
+  // 一方、 int *aは、 term()の中で、パースしてる
   if(consume("*"))
     return new_node(ND_DEREF, term(), NULL);
 

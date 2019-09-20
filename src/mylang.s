@@ -7,12 +7,31 @@ main:
   mov rax, rbp
   sub rax, 8
   push rax
-  push 10
+  push 1
   pop rdi
   pop rax
   mov [rax], rdi
   mov rax, rbp
+  sub rax, 16
+  push rax
+  mov rax, rbp
   sub rax, 8
+  push rax
+  pop rax
+  mov rax, [rax]
+  push rax
+  pop rdi
+  pop rax
+  mov [rax], rdi
+  mov rax, rbp
+  sub rax, 16
+  push rax
+  push 2
+  pop rdi
+  pop rax
+  mov [rax], rdi
+  mov rax, rbp
+  sub rax, 16
   push rax
   pop rax
   mov rax, [rax]
