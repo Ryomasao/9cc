@@ -116,26 +116,29 @@ bool at_eof() {
   return false;
 }
 
+// 変数に型がついている場合しか呼ばない
 Lvar *create_or_set_lvars(Token *tok) {
   // Tokenの変数が新しいものか、既存のものかを調べる
+  // 同一の名前のものがあればエラー
   Lvar *lvar = find_lvar(tok);
+  if(lvar) {
+    error("同じ変数名が宣言されているよ");
+  }
 
-  if(!lvar) {
-    // 新しい変数の場合、Lvarをつくって、リストをつなげてく
-    lvar = calloc(1, sizeof(Lvar));
-    lvar->name = tok->str;
-    lvar->len = tok->len;
-    Lvar *prevVar = getLastLocalsVar();
+  // 新しい変数の場合、Lvarをつくって、リストをつなげてく
+  lvar = calloc(1, sizeof(Lvar));
+  lvar->name = tok->str;
+  lvar->len = tok->len;
+  Lvar *prevVar = getLastLocalsVar();
 
-    if(!prevVar) {
-      // リストの先頭は、直接配列に格納する
-      lvar->offset = 8;
-      locals[functionId] = lvar;
-    } else {
-      // offsetは8バイト？ずつ足してく
-      lvar->offset = prevVar->offset + 8;
-      prevVar->next = lvar;
-    }
+  if(!prevVar) {
+    // リストの先頭は、直接配列に格納する
+    lvar->offset = 8;
+    locals[functionId] = lvar;
+  } else {
+    // offsetは8バイト？ずつ足してく
+    lvar->offset = prevVar->offset + 8;
+    prevVar->next = lvar;
   }
 
   return lvar;
