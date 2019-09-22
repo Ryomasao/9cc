@@ -68,7 +68,6 @@ void gen(Node *node) {
     // node->lhs: LVAR or DEREF
     // node->rhs: パターンがいっぱいありそう
 
-
     // *aが左辺値に来る場合
     if(node->lhs->kind == ND_DEREF) {
       // 右辺値として、実行する
@@ -76,7 +75,7 @@ void gen(Node *node) {
       // その値は、アドレスであるはず
       gen(node->lhs);
       return;
-    } 
+    }
 
     gen_lval(node->lhs);
     gen(node->rhs);
@@ -238,7 +237,7 @@ void gen(Node *node) {
 
     // printf(".Lrsp%d:\n", rspLabelId);
 
-    for(int i = 0; node->argv[i]; i++) {
+    for(int i = 0; i < node->argc; i++) {
       gen(node->argv[i]);
       printf("  pop rax\n");
       printf("  mov %s, rax\n", mapFuncArgvToRegister[i]);
@@ -269,7 +268,7 @@ void gen(Node *node) {
     // 変数26個分の領域を確保する
     printf("  sub rsp, 208\n");
 
-    for(int i = 0; node->argv[i]; i++) {
+    for(int i = 0; i < node->argc; i++) {
       gen_lval(node->argv[i]);
       printf("  pop rax\n");
       printf("  mov [rax], %s\n", mapFuncArgvToRegister[i]);

@@ -45,14 +45,13 @@ typedef struct Lvar {
 } Lvar;
 
 // ローカル変数
-Lvar* locals[100];
+Lvar *locals[100];
 int functionId;
 
 typedef struct Type {
   enum { INT, PTR } ty;
-  struct TYPE *ptr_to;
+  struct Type *ptr_to;
 } Type;
-
 
 // 抽象構文木のノードの種類
 typedef enum {
@@ -81,8 +80,8 @@ typedef enum {
   ND_FUNC_DIF,     // 関数定義
   ND_FUNC_DIF_END, // 関数の終了 } が格納
   ND_ADDR,         // & 変数のアドレスを取得
-  ND_DEREF,        // * 変数の値をアドレスをみなして、そのアドレスの値を取得
-  ND_INT           // INT型
+  ND_DEREF, // * 変数の値をアドレスをみなして、そのアドレスの値を取得
+  ND_INT    // INT型
 } NodeKind;
 
 // Node型の中にNodeがある
@@ -94,10 +93,13 @@ typedef struct Node {
   struct Node *rhs; // 右辺
   int val;          // kindがND_NUMの場合のみ使う
   int offset; // kindがND_LVARの場合のみ使う。変数名に応じてスタックのアドレスを静的に決める
+  Type *
+      lvarType; // kindがND_LVARの場合のみ使う。その変数がポインタ型かINT型かを管理する。
   struct Node *
       *vector; // kindがND_BLOCKの場合、stmtのnode保持する配列へのポインタ
   char *funcName;       // kindがND_FUNCの場合の関数名
   struct Node *argv[3]; // kindがND_FUNCの場合の引数
+  int argc;             // kindがND_FUNCの場合の引数の数
 } Node;
 
 // ファイル読み込み

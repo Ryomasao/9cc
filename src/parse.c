@@ -69,12 +69,6 @@ int expect_number() {
 // 次のトークンがidentのときはそのトークン(のアドレス)を返し、トークンを1つ読み進めておく
 // それ以外の場合は、NULLを返す
 Token *consume_ident() {
-  Token *origin = token;
-
-  // ポインタを考慮する
-  while(consume("*"))
-    ;
-
   if(token->kind == TK_IDENT) {
     Token *identToken = token;
     token = token->next;
@@ -117,7 +111,7 @@ bool at_eof() {
 }
 
 // 変数に型がついている場合しか呼ばない
-Lvar *create_or_set_lvars(Token *tok) {
+Lvar *addNewLvar(Token *tok) {
   // Tokenの変数が新しいものか、既存のものかを調べる
   // 同一の名前のものがあればエラー
   Lvar *lvar = find_lvar(tok);
@@ -146,7 +140,7 @@ Lvar *create_or_set_lvars(Token *tok) {
 
 // 関数の()の中をパースする
 // 呼び出し後は、)←のトークンも読み進めているので、呼び出し側で)を読み飛ばす必要はないので注意
-void parse_argv(Node *argv[3]) {
+void parse_argv(Node *argv[3], int *argc) {
   int i = 0;
 
   while(true) {
@@ -162,6 +156,7 @@ void parse_argv(Node *argv[3]) {
     // とおもったけど、func(n - 1)とかやるから、exprじゃなきゃだめ！
     argv[i] = expr();
     i++;
+    *argc = i;
 
     // 最後が,じゃなかったら引数はもうないとみなす
     if(!consume(",")) {
@@ -173,7 +168,7 @@ void parse_argv(Node *argv[3]) {
 
 // parse_argvで型があるかをチェックする
 // かなり冗長だけどひとまずね、、、
-void parse_argv_with_type(Node *argv[3]) {
+void parse_argv_with_type(Node *argv[3], int *argc) {
   int i = 0;
 
   while(true) {
@@ -187,6 +182,7 @@ void parse_argv_with_type(Node *argv[3]) {
 
     argv[i] = expr();
     i++;
+    *argc = i;
 
     // 最後が,じゃなかったら引数はもうないとみなす
     if(!consume(",")) {
@@ -205,7 +201,7 @@ Node *if_token_is_func_return_node(Token *tok) {
     expect("(");
 
     Node *node = calloc(1, sizeof(Node));
-    parse_argv(node->argv);
+    parse_argv(node->argv, &node->argc);
     node->kind = ND_FUNC;
     // callocは終端文字文を意識して+1してるけど、意味があるのかしら
     node->funcName = calloc(1, tok->len + 1);
@@ -243,17 +239,35 @@ Node *return_func_or_lvar_node(Token *tok) {
 // node->kind = ND_LVAR
 // node->lhs  = NULL
 // node->rhs  = NULL
-Node *if_token_is_def_lvar_return_node(Token *tok) {
+Node *if_token_is_def_lvar_return_node(Token *tok, int ptrCounter) {
   Node *node = calloc(1, sizeof(Node));
   // 変数
   node->kind = ND_LVAR;
-  Lvar *lvar = create_or_set_lvars(tok);
+  Lvar *lvar = addNewLvar(tok);
+
+  // 型の情報をNodeに持たせる
+  Type *type = calloc(1, sizeof(Type));
+  Type *first_type = type;
+  // ポインタ型の分だけリストをつなげていく
+  while(ptrCounter > 0) {
+    type->ty = PTR;
+    Type *next_type = calloc(1, sizeof(Type));
+    type->ptr_to = next_type;
+    type = next_type;
+    ptrCounter--;
+  }
+
+  // リストの最後はINT型の決め打ち
+  type->ty = INT;
+  type->ptr_to = NULL;
+
+  node->lvarType = first_type;
   node->offset = lvar->offset;
   return node;
 }
 
 // 型つきの場合は、宣言のはず
-Node *return_func_or_lvar_node_on_def(Token *tok) {
+Node *return_func_or_lvar_node_on_def(Token *tok, int ptrCounter) {
   Node *node;
 
   // 関数は型つきじゃない場合と同じものをひとまず
@@ -261,7 +275,7 @@ Node *return_func_or_lvar_node_on_def(Token *tok) {
   if(node)
     return node;
 
-  node = if_token_is_def_lvar_return_node(tok);
+  node = if_token_is_def_lvar_return_node(tok, ptrCounter);
   return node;
 }
 
@@ -276,10 +290,14 @@ Node *term() {
   // 宣言
   if(token->kind == TK_INT) {
     token = token->next;
+    int ptrCounter = 0;
+    while(consume("*")) {
+      ptrCounter++;
+    }
     Token *tok = consume_ident();
     if(!tok)
       error("型の後に変数がないよ");
-    return return_func_or_lvar_node_on_def(tok);
+    return return_func_or_lvar_node_on_def(tok, ptrCounter);
   }
 
   // 実装
@@ -538,7 +556,7 @@ Node *expect_func_difinition() {
   strncpy(node->funcName, tok->str, tok->len);
 
   // 引数をパース )も読み飛ばしてる
-  parse_argv_with_type(node->argv);
+  parse_argv_with_type(node->argv, &node->argc);
 
   expect("{");
 
