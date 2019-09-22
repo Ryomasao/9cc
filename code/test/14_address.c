@@ -1,7 +1,6 @@
-int main()
-{
-  a = 13;
-  b = &a;
-  c = *b;
+int main() {
+  int a = 13;
+  int b = &a;
+  int c = *b;
   return c;
 }

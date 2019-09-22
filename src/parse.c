@@ -72,7 +72,8 @@ Token *consume_ident() {
   Token *origin = token;
 
   // ポインタを考慮する
-  while(consume("*"));
+  while(consume("*"))
+    ;
 
   if(token->kind == TK_IDENT) {
     Token *identToken = token;
@@ -101,7 +102,8 @@ Lvar *getLastLocalsVar() {
 
   // tempがNULLのとき、temp->nextもNULLでwhile(temp->next)は抜けると思ったけど
   // BAD ACCESSになるので、抜ける
-  if(!temp) return NULL;
+  if(!temp)
+    return NULL;
 
   while(temp->next)
     temp = temp->next;
@@ -134,7 +136,6 @@ Lvar *create_or_set_lvars(Token *tok) {
       lvar->offset = prevVar->offset + 8;
       prevVar->next = lvar;
     }
-
   }
 
   return lvar;
@@ -179,8 +180,6 @@ void parse_argv_with_type(Node *argv[3]) {
 
     if(token->kind != TK_INT) {
       error("関数の引数に型がないよ");
-    } else {
-      token = token->next;
     }
 
     argv[i] = expr();
@@ -198,7 +197,7 @@ void parse_argv_with_type(Node *argv[3]) {
 // node->argv = 引数
 // node->lhs  = NULL
 // node->rhs  = NULL
-Node* if_token_is_func_return_node(Token *tok) {
+Node *if_token_is_func_return_node(Token *tok) {
   if(is_supposed_token("(", tok->next)) {
     expect("(");
 
@@ -216,7 +215,32 @@ Node* if_token_is_func_return_node(Token *tok) {
 // node->kind = ND_LVAR
 // node->lhs  = NULL
 // node->rhs  = NULL
-Node* if_token_is_lvar_return_node(Token *tok) {
+Node *if_token_is_lvar_return_node(Token *tok) {
+  Node *node = calloc(1, sizeof(Node));
+  // 変数
+  node->kind = ND_LVAR;
+  Lvar *lvar = find_lvar(tok);
+  if(!lvar)
+    error("宣言されてない変数名だよ");
+  node->offset = lvar->offset;
+  return node;
+}
+
+Node *return_func_or_lvar_node(Token *tok) {
+  Node *node;
+
+  node = if_token_is_func_return_node(tok);
+  if(node)
+    return node;
+
+  node = if_token_is_lvar_return_node(tok);
+  return node;
+}
+
+// node->kind = ND_LVAR
+// node->lhs  = NULL
+// node->rhs  = NULL
+Node *if_token_is_def_lvar_return_node(Token *tok) {
   Node *node = calloc(1, sizeof(Node));
   // 変数
   node->kind = ND_LVAR;
@@ -225,14 +249,17 @@ Node* if_token_is_lvar_return_node(Token *tok) {
   return node;
 }
 
-Node* return_func_or_lvar_node(Token *tok) {
-    Node *node;
+// 型つきの場合は、宣言のはず
+Node *return_func_or_lvar_node_on_def(Token *tok) {
+  Node *node;
 
-    node = if_token_is_func_return_node(tok);
-    if(node) return node;
-
-    node = if_token_is_lvar_return_node(tok);
+  // 関数は型つきじゃない場合と同じものをひとまず
+  node = if_token_is_func_return_node(tok);
+  if(node)
     return node;
+
+  node = if_token_is_def_lvar_return_node(tok);
+  return node;
 }
 
 // term = "(" expr ")" | type ident ( "(" ")" )? |ident ( "(" ")" )? | num
@@ -247,11 +274,12 @@ Node *term() {
   if(token->kind == TK_INT) {
     token = token->next;
     Token *tok = consume_ident();
-    if(!tok) error("型の後に変数がないよ");
-    return return_func_or_lvar_node(tok);
+    if(!tok)
+      error("型の後に変数がないよ");
+    return return_func_or_lvar_node_on_def(tok);
   }
 
-  // 実装 
+  // 実装
   Token *tok = consume_ident();
   if(tok) {
     return return_func_or_lvar_node(tok);
@@ -490,7 +518,7 @@ Node *block_statement() {
 
 Node *expect_func_difinition() {
 
-  if(token->kind != TK_INT) 
+  if(token->kind != TK_INT)
     error("トップレベルの関数に型がないよ");
   token = token->next;
 
